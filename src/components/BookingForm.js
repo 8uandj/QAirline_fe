@@ -1,68 +1,128 @@
-import { useForm, Controller } from 'react-hook-form';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/flatpickr.min.css';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 function BookingForm({ flight, locations, onSubmit }) {
-    const { register, handleSubmit, control, formState: { errors } } = useForm();
+    const [name, setName] = useState('');
+    const [departureCountry, setDepartureCountry] = useState('');
+    const [departureCity, setDepartureCity] = useState('');
+    const [destinationCountry, setDestinationCountry] = useState('');
+    const [destinationCity, setDestinationCity] = useState('');
+
+    // Danh sách thành phố tương ứng với quốc gia đã chọn
+    const departureCities = departureCountry
+        ? locations.find(loc => loc.country === departureCountry)?.cities || []
+        : [];
+    const destinationCities = destinationCountry
+        ? locations.find(loc => loc.country === destinationCountry)?.cities || []
+        : [];
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!name || !departureCountry || !departureCity || !destinationCountry || !destinationCity) {
+            alert('Vui lòng điền đầy đủ thông tin.');
+            return;
+        }
+        onSubmit({
+            name,
+            departure: departureCity,
+            destination: destinationCity
+        });
+    };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Họ tên */}
             <div>
-                <label className="block text-sm font-medium">Họ tên</label>
+                <label className="block text-gray-700 mb-2">Họ tên</label>
                 <input
-                    {...register('name', { required: 'Họ tên là bắt buộc' })}
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nhập họ tên"
+                    className="p-2 border rounded w-full"
+                    required
                 />
-                {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
             </div>
+            {/* Điểm đi */}
             <div>
-                <label className="block text-sm font-medium">Điểm đi</label>
-                <select
-                    {...register('departure', { required: 'Điểm đi là bắt buộc' })}
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                    defaultValue={flight.departure}
-                >
-                    <option value="">Chọn điểm đi</option>
-                    {locations.map(loc => (
-                        <option key={loc.id} value={loc.name}>{loc.name}</option>
-                    ))}
-                </select>
-                {errors.departure && <p className="text-red-500 text-sm">{errors.departure.message}</p>}
+                <label className="block text-gray-700 mb-2">Điểm đi</label>
+                <div className="flex space-x-4">
+                    <select
+                        value={departureCountry}
+                        onChange={(e) => {
+                            setDepartureCountry(e.target.value);
+                            setDepartureCity(''); // Reset thành phố khi đổi quốc gia
+                        }}
+                        className="p-2 border rounded flex-1"
+                        required
+                    >
+                        <option value="">Chọn quốc gia</option>
+                        {locations.map(loc => (
+                            <option key={loc.country} value={loc.country}>
+                                {loc.country}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={departureCity}
+                        onChange={(e) => setDepartureCity(e.target.value)}
+                        className="p-2 border rounded flex-1"
+                        disabled={!departureCountry}
+                        required
+                    >
+                        <option value="">Chọn thành phố</option>
+                        {departureCities.map(city => (
+                            <option key={city} value={city}>
+                                {city}
+                        </option>
+                        ))}
+                    </select>
+                </div>
             </div>
+            {/* Điểm đến */}
             <div>
-                <label className="block text-sm font-medium">Điểm đến</label>
-                <select
-                    {...register('destination', { required: 'Điểm đến là bắt buộc' })}
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                    defaultValue={flight.destination}
-                >
-                    <option value="">Chọn điểm đến</option>
-                    {locations.map(loc => (
-                        <option key={loc.id} value={loc.name}>{loc.name}</option>
-                    ))}
-                </select>
-                {errors.destination && <p className="text-red-500 text-sm">{errors.destination.message}</p>}
+                <label className="block text-gray-700 mb-2">Điểm đến</label>
+                <div className="flex space-x-4">
+                    <select
+                        value={destinationCountry}
+                        onChange={(e) => {
+                            setDestinationCountry(e.target.value);
+                            setDestinationCity(''); // Reset thành phố khi đổi quốc gia
+                        }}
+                        className="p-2 border rounded flex-1"
+                        required
+                    >
+                        <option value="">Chọn quốc gia</option>
+                        {locations.map(loc => (
+                            <option key={loc.country} value={loc.country}>
+                                {loc.country}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={destinationCity}
+                        onChange={(e) => setDestinationCity(e.target.value)}
+                        className="p-2 border rounded flex-1"
+                        disabled={!destinationCountry}
+                        required
+                    >
+                        <option value="">Chọn thành phố</option>
+                        {destinationCities.map(city => (
+                            <option key={city} value={city}>
+                                {city}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="block text-sm font-medium">Ngày đi</label>
-                <Controller
-                    control={control}
-                    name="travelDate"
-                    rules={{ required: 'Ngày đi là bắt buộc' }}
-                    render={({ field }) => (
-                        <Flatpickr
-                            value={field.value}
-                            onChange={(date) => field.onChange(date[0])}
-                            options={{ dateFormat: 'Y-m-d' }}
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                    )}
-                />
-                {errors.travelDate && <p className="text-red-500 text-sm">{errors.travelDate.message}</p>}
-            </div>
-            <button type="submit" className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition w-full">
-                Xác nhận đặt vé
-            </button>
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="submit"
+                className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition w-full"
+            >
+                Tiếp tục
+            </motion.button>
         </form>
     );
 }

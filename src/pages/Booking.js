@@ -1,92 +1,104 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-// import { getFlight, getLocations, bookTicket } from '../services/api'; // Comment: Import các hàm từ services/api.js để lấy dữ liệu chuyến bay, danh sách địa điểm và đặt vé từ backend
-import { staticFlights } from '../data/flights';
-import BookingForm from '../components/BookingForm';
-import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import { getFlight, getTicketClasses, bookTicket } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Booking() {
-    const { flightId } = useParams();
-    const navigate = useNavigate();
     const { user } = useAuth();
-    const [step, setStep] = useState(1); // Quản lý các bước đặt vé
-    const [selectedSeat, setSelectedSeat] = useState(null);
-    const [additionalServices, setAdditionalServices] = useState({ luggage: false, meal: false });
-
-    // Dữ liệu tĩnh cho chuyến bay để demo frontend
-    const staticFlight = staticFlights.find(f => f.id === parseInt(flightId));
-
-    // Dữ liệu tĩnh cho danh sách địa điểm để demo frontend
-    const staticLocations = [
-        { id: 1, name: "Hà Nội" },
-        { id: 2, name: "TP. Hồ Chí Minh" },
-        { id: 3, name: "Đà Nẵng" },
-        { id: 4, name: "Huế" },
-        { id: 5, name: "Nha Trang" }
-    ];
-
-    const [flight] = useState(staticFlight);
-    const [locations] = useState(staticLocations);
-    const [loading] = useState(false);
-    const [error] = useState(null);
-
-    // Comment: Đoạn mã dưới đây dùng để lấy dữ liệu từ backend, hiện tại được comment để sử dụng dữ liệu tĩnh
-    // const [flight, setFlight] = useState(null);
-    // const [locations, setLocations] = useState([]);
-    // const [loading, setLoading] = useState(false);
-    // const [error, setError] = useState(null);
-    // useEffect(() => {
-    //     if (!user) {
-    //         navigate('/login');
-    //         return;
-    //     }
-    //     setLoading(true);
-    //     Promise.all([
-    //         getFlight(flightId),
-    //         getLocations()
-    //     ])
-    //         .then(([flightRes, locationsRes]) => {
-    //             setFlight(flightRes.data);
-    //             setLocations(locationsRes.data);
-    //         })
-    //         .catch(err => setError('Lỗi khi tải dữ liệu: ' + err.message))
-    //         .finally(() => setLoading(false));
-    // }, [flightId, user, navigate]);
-
-    const onSubmit = async (data) => {
-        try {
-            // Giả lập đặt vé thành công
-            alert('Đặt vé thành công! (Dữ liệu tĩnh)');
-            navigate('/tickets');
-        } catch (err) {
-            alert('Lỗi khi đặt vé: ' + err.message);
+    const navigate = useNavigate();
+    const { flightId } = useParams();
+    const [flight, setFlight] = useState(null);
+    const [ticketClasses, setTicketClasses] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        seat: '',
+        ticketClassId: '1', // Mặc định là phổ thông
+        tripType: 'one-way', // Mặc định là một chiều
+        classType: 'economy', // Mặc định là phổ thông
+        additionalServices: {
+            luggage: false,
+            meal: false
         }
-
-        // Comment: Đoạn mã dưới đây dùng để gọi API đặt vé từ backend, hiện tại được comment để giả lập
-        // try {
-        //     await bookTicket({
-        //         flight_id: flightId,
-        //         user_id: user.id,
-        //         ...data
-        //     });
-        //     alert('Đặt vé thành công!');
-        //     navigate('/tickets');
-        // } catch (err) {
-        //     alert('Lỗi khi đặt vé: ' + err.message);
-        // }
-    };
+    });
 
     useEffect(() => {
         if (!user) {
             navigate('/login');
             return;
         }
-    }, [user, navigate]);
+
+        setLoading(true);
+        Promise.all([
+            getFlight(flightId),
+            getTicketClasses()
+        ])
+            .then(([flightRes, classesRes]) => {
+                setFlight(flightRes.data);
+                setTicketClasses(classesRes.data || []);
+            })
+            .catch(err => setError('Không thể tải dữ liệu: ' + err.message))
+            .finally(() => setLoading(false));
+    }, [user, flightId, navigate]);
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        if (type === 'checkbox') {
+            setFormData(prev => ({
+                ...prev,
+                additionalServices: {
+                    ...prev.additionalServices,
+                    [name]: checked
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    const calculatePrice = (basePrice) => {
+        let price = basePrice;
+
+        // Tính giá theo loại chuyến (một chiều/khứ hồi)
+        if (formData.tripType === 'round-trip') {
+            price *= 2; // Giả định khứ hồi gấp đôi giá một chiều
+        }
+
+        // Tính giá theo hạng vé (phổ thông/vip/thương gia)
+        if (formData.classType === 'vip') {
+            price *= 1.3; // Giả định VIP tăng 30%
+        } else if (formData.classType === 'business') {
+            price *= 1.5; // Giả định thương gia tăng 50%
+        }
+
+        return price;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const ticketData = {
+                customerId: user.userId,
+                flightId: flight.id,
+                seat: formData.seat,
+                ticketClassId: formData.ticketClassId,
+                additionalServices: formData.additionalServices
+            };
+            await bookTicket(ticketData);
+            alert('Đặt vé thành công!');
+            navigate('/tickets');
+        } catch (err) {
+            setError('Đặt vé thất bại: ' + err.message);
+        }
+    };
 
     if (loading) return <div className="text-center p-4">Đang tải...</div>;
-    if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
-    if (!flight) return <div className="text-center p-4">Không tìm thấy chuyến bay</div>;
+    if (!flight) return <div className="text-center p-4">Không tìm thấy chuyến bay.</div>;
 
     return (
         <motion.div
@@ -95,109 +107,114 @@ function Booking() {
             transition={{ duration: 0.8 }}
             className="container mx-auto p-4"
         >
-            <h1 className="text-3xl font-bold mb-6 text-green-600">Đặt vé cho chuyến bay {flight.flight_number}</h1>
-            {/* Bước 1: Thông tin cơ bản */}
-            {step === 1 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <h2 className="text-2xl font-semibold mb-4">Bước 1: Thông tin hành khách</h2>
-                    <BookingForm flight={flight} locations={locations} onSubmit={(data) => { onSubmit(data); setStep(2); }} />
-                </motion.div>
+            <h1 className="text-3xl font-bold mb-6 text-green-600">Đặt vé chuyến bay</h1>
+            {error && (
+                <div className="text-center p-4 text-red-500">
+                    {error}
+                    <p className="text-gray-600 mt-2">Vui lòng thử lại hoặc liên hệ quản trị viên.</p>
+                </div>
             )}
-            {/* Bước 2: Chọn ghế */}
-            {step === 2 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="mt-6"
-                >
-                    <h2 className="text-2xl font-semibold mb-4">Bước 2: Chọn ghế</h2>
-                    <div className="grid grid-cols-4 gap-2">
-                        {["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2"].map(seat => (
-                            <motion.button
-                                key={seat}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setSelectedSeat(seat)}
-                                className={`p-2 rounded ${selectedSeat === seat ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-500 hover:text-white transition`}
-                            >
-                                {seat}
-                            </motion.button>
-                        ))}
+
+            {/* Thông tin chuyến bay */}
+            <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+                <h2 className="text-2xl font-semibold mb-4">Thông tin chuyến bay</h2>
+                <p><strong>Địa điểm đi:</strong> {flight.departure}</p>
+                <p><strong>Địa điểm đến:</strong> {flight.destination}</p>
+                <p><strong>Ngày bay:</strong> {new Date(flight.departureTime).toLocaleString()}</p>
+            </div>
+
+            {/* Form đặt vé */}
+            <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-4">Thông tin hành khách</h2>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-gray-700 mb-2">Họ tên</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="p-2 border rounded w-full"
+                            placeholder="Nhập họ tên"
+                            required
+                        />
                     </div>
-                    <div className="flex space-x-4 mt-4">
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setStep(1)}
-                            className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition"
-                        >
-                            Quay lại
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setStep(3)}
-                            className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
-                        >
-                            Tiếp tục
-                        </motion.button>
+                    <div>
+                        <label className="block text-gray-700 mb-2">Chọn ghế</label>
+                        <input
+                            type="text"
+                            name="seat"
+                            value={formData.seat}
+                            onChange={handleInputChange}
+                            className="p-2 border rounded w-full"
+                            placeholder="Ví dụ: A1"
+                            required
+                        />
                     </div>
-                </motion.div>
-            )}
-            {/* Bước 3: Dịch vụ bổ sung */}
-            {step === 3 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="mt-6"
-                >
-                    <h2 className="text-2xl font-semibold mb-4">Bước 3: Dịch vụ bổ sung</h2>
-                    <div className="space-y-4">
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={additionalServices.luggage}
-                                onChange={() => setAdditionalServices({ ...additionalServices, luggage: !additionalServices.luggage })}
-                                className="form-checkbox"
-                            />
-                            <span>Thêm hành lý ký gửi (20kg - 500,000 VND)</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={additionalServices.meal}
-                                onChange={() => setAdditionalServices({ ...additionalServices, meal: !additionalServices.meal })}
-                                className="form-checkbox"
-                            />
-                            <span>Thêm suất ăn trên máy bay (150,000 VND)</span>
-                        </label>
-                    </div>
-                    <div className="flex space-x-4 mt-4">
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setStep(2)}
-                            className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition"
+                    <div>
+                        <label className="block text-gray-700 mb-2">Loại chuyến</label>
+                        <select
+                            name="tripType"
+                            value={formData.tripType}
+                            onChange={handleInputChange}
+                            className="p-2 border rounded w-full"
                         >
-                            Quay lại
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => onSubmit({ seat: selectedSeat, services: additionalServices })}
-                            className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
-                        >
-                            Hoàn tất đặt vé
-                        </motion.button>
+                            <option value="one-way">Một chiều</option>
+                            <option value="round-trip">Khứ hồi</option>
+                        </select>
                     </div>
-                </motion.div>
-            )}
+                    <div>
+                        <label className="block text-gray-700 mb-2">Hạng vé</label>
+                        <select
+                            name="classType"
+                            value={formData.classType}
+                            onChange={handleInputChange}
+                            className="p-2 border rounded w-full"
+                        >
+                            <option value="economy">Phổ thông</option>
+                            <option value="vip">VIP</option>
+                            <option value="business">Thương gia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-gray-700 mb-2">Giá tiền (VND)</label>
+                        <p className="text-lg font-semibold">{calculatePrice(flight.price).toLocaleString()}</p>
+                    </div>
+                    <div>
+                        <label className="block text-gray-700 mb-2">Dịch vụ bổ sung</label>
+                        <div className="flex space-x-4">
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    name="luggage"
+                                    checked={formData.additionalServices.luggage}
+                                    onChange={handleInputChange}
+                                    className="mr-2"
+                                />
+                                Hành lý ký gửi
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    name="meal"
+                                    checked={formData.additionalServices.meal}
+                                    onChange={handleInputChange}
+                                    className="mr-2"
+                                />
+                                Suất ăn
+                            </label>
+                        </div>
+                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="submit"
+                        className="bg-green-500 text-white p-2 rounded w-full hover:bg-green-600 transition"
+                    >
+                        Xác nhận đặt vé
+                    </motion.button>
+                </div>
+            </form>
         </motion.div>
     );
 }

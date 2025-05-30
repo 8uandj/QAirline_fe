@@ -46,7 +46,7 @@ function Admin() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4 text-bamboo-green">Quản trị chuyến bay</h1>
+            <h1 className="text-2xl font-bold mb-4 text-green-600">Quản trị chuyến bay</h1>
             {stats && (
                 <div className="mb-6 p-4 bg-white shadow-md rounded-lg">
                     <h2 className="text-xl font-semibold mb-2">Thống kê</h2>

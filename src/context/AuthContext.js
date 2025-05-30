@@ -1,26 +1,26 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
+    const [user, setUser] = useState(() => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
-        if (token && userId) {
-            // Giả lập lấy thông tin người dùng từ token
-            setUser({ id: userId, role: 'user' }); // Thay bằng gọi API nếu cần
-        }
-    }, []);
+        const role = localStorage.getItem('role');
+        return token && userId && role ? { id: userId, role } : null;
+    });
 
     const login = (userData) => {
-        setUser(userData);
+        localStorage.setItem('token', userData.token);
+        localStorage.setItem('userId', userData.userId);
+        localStorage.setItem('role', userData.role);
+        setUser({ id: userData.userId, role: userData.role });
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
+        localStorage.removeItem('role');
         setUser(null);
     };
 
