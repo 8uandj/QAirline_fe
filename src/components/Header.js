@@ -1,171 +1,218 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function Header({ isAdmin = false }) {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // Trạng thái menu hamburger
-    const [language, setLanguage] = useState('EN'); // Ngôn ngữ giả định
-    const [currency, setCurrency] = useState('VND'); // Tiền tệ giả định
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [language, setLanguage] = useState('EN');
+  const [currency, setCurrency] = useState('VND');
+  const [scrollY, setScrollY] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/');
-        setIsMenuOpen(false); // Đóng menu khi đăng xuất
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
     };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    return (
-        <header
-            className="text-white shadow-md fixed top-0 left-0 w-full z-50 h-24"
-            style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-            }}
-        >
-            <div className="bg-black bg-opacity-50 h-full">
-                <div className="container mx-auto flex justify-between items-center h-full px-4">
-                    {/* Logo và tên QAirline */}
-                    <Link to={isAdmin ? '/admin' : '/'} className="flex items-center space-x-2">
-                        <img
-                            src="https://th.bing.com/th/id/R.ba7ed8706ef73b284772b3f07a479f0c?rik=%2fXA%2bwffDaP0jJQ&pid=ImgRaw&r=0"
-                            alt="QAirline Logo"
-                            className="w-10 h-10"
-                        />
-                        <span className="text-2xl font-bold">
-                            {isAdmin ? 'QAirline Admin' : 'QAirline'}
-                        </span>
-                    </Link>
+  const showHeader = !isMobile && scrollY < 100;
+  const showHamburger = isMobile || scrollY >= 100;
 
-                    {/* Menu điều hướng chính (ẩn trên màn hình nhỏ) */}
-                    <nav className="hidden md:flex space-x-6">
-                        {isAdmin ? (
-                            <>
-                                <Link to="/admin/announcements" className="font-bold hover:text-green-500 hover:underline">Thông báo</Link>
-                                <Link to="/admin/aircrafts" className="font-bold hover:text-green-500 hover:underline">Tàu bay</Link>
-                                <Link to="/admin/flights" className="font-bold hover:text-green-500 hover:underline">Chuyến bay</Link>
-                                <Link to="/admin/tickets" className="font-bold hover:text-green-500 hover:underline">Đặt vé</Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/flights" className="font-bold hover:text-green-500 hover:underline">Chuyến bay</Link>
-                                <Link to="/tickets" className="font-bold hover:text-green-500 hover:underline">Vé của tôi</Link>
-                                <Link to="/promotions" className="font-bold hover:text-green-500 hover:underline">Khuyến mãi</Link>
-                            </>
-                        )}
-                    </nav>
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    setIsMenuOpen(false);
+  };
 
-                    {/* Ngôn ngữ, tiền tệ, tìm kiếm, và nút hành động (ẩn trên màn hình nhỏ) */}
-                    <div className="hidden md:flex items-center space-x-4">
-                        {/* Dropdown ngôn ngữ */}
-                        <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="bg-transparent border-none text-white"
-                        >
-                            <option value="EN" className="text-black">EN</option>
-                            <option value="VN" className="text-black">VN</option>
-                        </select>
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
-                        {/* Dropdown tiền tệ */}
-                        <select
-                            value={currency}
-                            onChange={(e) => setCurrency(e.target.value)}
-                            className="bg-transparent border-none text-white"
-                        >
-                            <option value="VND" className="text-black">VND</option>
-                            <option value="USD" className="text-black">USD</option>
-                        </select>
+  const navItemVariants = {
+    initial: { opacity: 0, y: -10 },
+    animate: { opacity: 1, y: 0 },
+    hover: { scale: 1.05, color: '#fcd34d' }
+  };
 
-                        {/* Biểu tượng tìm kiếm */}
-                        <button className="text-white hover:text-green-500">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </button>
+  return (
+    <>
+      <AnimatePresence>
+        {showHeader && (
+          <motion.header
+            key="header"
+            initial={{ opacity: 0, y: -100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -100 }}
+            className="fixed top-0 left-0 w-full z-50"
+          >
+            <div className="relative h-24">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(to right, rgba(63, 194, 234, 0.9), rgba(132, 255, 198, 0.9), rgba(37, 224, 230, 0.9))',
+                }}
+              />
+              <div className="relative flex justify-between items-center h-full px-4">
+                <Link to={isAdmin ? '/admin' : '/'} className="flex items-center space-x-3">
+                  <img
+                    src="https://th.bing.com/th/id/R.ba7ed8706ef73b284772b3f07a479f0c?rik=%2fXA%2bwffDaP0jJQ&pid=ImgRaw&r=0"
+                    alt="QAirline Logo"
+                    className="w-12 h-12 rounded-full border-2 border-amber-300 shadow-lg"
+                  />
+                  <span className="font-extrabold text-gray-800 text-4xl drop-shadow-xl">
+                    {isAdmin ? 'QAirline Admin' : 'QAirline'}
+                  </span>
+                </Link>
 
-                        {/* Nút đăng nhập/đăng ký/đăng xuất */}
-                        {user ? (
-                            <button onClick={handleLogout} className="hover:text-green-500 hover:underline">Đăng xuất</button>
-                        ) : (
-                            <>
-                                <Link to="/login" className="hover:text-green-500 hover:underline">Đăng nhập</Link>
-                                <Link to="/register" className="hover:text-green-500 hover:underline">Đăng ký</Link>
-                            </>
-                        )}
-                    </div>
+                <nav className="hidden md:flex space-x-6">
+                  {isAdmin ? (
+                    <>
+                      {['announcements', 'aircrafts', 'flights', 'tickets'].map((item) => (
+                        <motion.div key={item} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
+                          <Link to={`/admin/${item}`} className="text-gray-800 font-semibold text-base">
+                            {item.charAt(0).toUpperCase() + item.slice(1)}
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {['flights', 'tickets', 'promotions'].map((item) => (
+                        <motion.div key={item} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
+                          <Link to={`/${item}`} className="text-gray-800 font-semibold text-base">
+                            {item === 'tickets' ? 'Vé của tôi' : item.charAt(0).toUpperCase() + item.slice(1)}
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </>
+                  )}
+                </nav>
 
-                    {/* Nút hamburger (hiển thị trên màn hình nhỏ) */}
-                    <button className="md:hidden text-white" onClick={toggleMenu}>
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
+                <div className="flex items-center space-x-3">
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-transparent border border-gray-800 rounded px-2 py-1 text-gray-800 text-sm">
+                    <option value="EN" className="text-black">EN</option>
+                    <option value="VN" className="text-black">VN</option>
+                  </select>
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="bg-transparent border border-gray-800 rounded px-2 py-1 text-gray-800 text-sm">
+                    <option value="VND" className="text-black">VND</option>
+                    <option value="USD" className="text-black">USD</option>
+                  </select>
+                  <button className="text-gray-800">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                  {user ? (
+                    <button onClick={handleLogout} className="text-gray-800 font-semibold text-base">
+                      Đăng xuất
                     </button>
+                  ) : (
+                    <>
+                      <Link to="/login" className="text-gray-800 font-semibold text-base">
+                        Đăng nhập
+                      </Link>
+                      <Link to="/register" className="text-gray-800 font-semibold text-base">
+                        Đăng ký
+                      </Link>
+                    </>
+                  )}
                 </div>
+              </div>
             </div>
+          </motion.header>
+        )}
+      </AnimatePresence>
 
-            {/* Menu hamburger (hiển thị khi mở trên màn hình nhỏ) */}
-            {isMenuOpen && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="md:hidden bg-white p-4 shadow-md"
-                >
-                    <nav className="flex flex-col space-y-4">
-                        {isAdmin ? (
-                            <>
-                                <Link to="/admin/announcements" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Thông báo</Link>
-                                <Link to="/admin/aircrafts" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Tàu bay</Link>
-                                <Link to="/admin/flights" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Chuyến bay</Link>
-                                <Link to="/admin/tickets" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Đặt vé</Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/flights" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Chuyến bay</Link>
-                                <Link to="/tickets" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Vé của tôi</Link>
-                                <Link to="/promotions" className="text-black font-bold hover:text-green-500 hover:underline" onClick={toggleMenu}>Khuyến mãi</Link>
-                            </>
-                        )}
-                        {/* Ngôn ngữ và tiền tệ trong menu hamburger */}
-                        <div className="flex space-x-4">
-                            <select
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
-                                className="bg-transparent border-none text-black"
-                            >
-                                <option value="EN">EN</option>
-                                <option value="VN">VN</option>
-                            </select>
-                            <select
-                                value={currency}
-                                onChange={(e) => setCurrency(e.target.value)}
-                                className="bg-transparent border-none text-black"
-                            >
-                                <option value="VND">VND</option>
-                                <option value="USD">USD</option>
-                            </select>
-                        </div>
-                        {/* Nút hành động trong menu hamburger */}
-                        {user ? (
-                            <button onClick={handleLogout} className="text-black hover:text-green-500 hover:underline">Đăng xuất</button>
-                        ) : (
-                            <div className="flex flex-col space-y-2">
-                                <Link to="/login" className="text-black hover:text-green-500 hover:underline" onClick={toggleMenu}>Đăng nhập</Link>
-                                <Link to="/register" className="text-black hover:text-green-500 hover:underline" onClick={toggleMenu}>Đăng ký</Link>
-                            </div>
-                        )}
-                    </nav>
-                </motion.div>
-            )}
-        </header>
-    );
+      <motion.button
+        animate={{ opacity: showHamburger ? 1 : 0 }}
+        style={{ pointerEvents: showHamburger ? 'auto' : 'none' }}
+        className="fixed top-4 right-4 z-60 p-3 rounded-full shadow-lg"
+        onClick={toggleMenu}
+        style={{ backgroundColor: 'rgba(7, 150, 81, 0.95)' }}
+      >
+        <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </motion.button>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black bg-opacity-50"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ y: -100 }}
+              animate={{ y: 0 }}
+              exit={{ y: -100 }}
+              className="bg-gray-50 p-6 shadow-2xl rounded-b-2xl max-w-md w-full mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <nav className="flex flex-col space-y-4">
+                {isAdmin ? (
+                  <>
+                    {['announcements', 'aircrafts', 'flights', 'tickets'].map((item) => (
+                      <Link key={item} to={`/admin/${item}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                        {item.charAt(0).toUpperCase() + item.slice(1)}
+                      </Link>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {['flights', 'tickets', 'promotions'].map((item) => (
+                      <Link key={item} to={`/${item}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                        {item === 'tickets' ? 'Vé của tôi' : item.charAt(0).toUpperCase() + item.slice(1)}
+                      </Link>
+                    ))}
+                  </>
+                )}
+                <div className="flex space-x-4">
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-gray-100 border border-green-300 text-gray-900 rounded-lg px-3 py-1.5">
+                    <option value="EN">EN</option>
+                    <option value="VN">VN</option>
+                  </select>
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="bg-gray-100 border border-green-300 text-gray-900 rounded-lg px-3 py-1.5">
+                    <option value="VND">VND</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
+                {user ? (
+                  <button onClick={handleLogout} className="text-gray-900 font-semibold text-base">
+                    Đăng xuất
+                  </button>
+                ) : (
+                  <div className="flex flex-col space-y-2">
+                    <Link to="/login" className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                      Đăng nhập
+                    </Link>
+                    <Link to="/register" className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                      Đăng ký
+                    </Link>
+                  </div>
+                )}
+              </nav>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }
 
 export default Header;

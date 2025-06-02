@@ -1,146 +1,292 @@
 import { useState, useEffect } from 'react';
-import { getAircrafts, createAircraft } from '../../services/api';
+import { createAircraft, getAircrafts, getAirlines } from '../../services/api';
 import { motion } from 'framer-motion';
 
 function AdminAircrafts() {
-    const [aircrafts, setAircrafts] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [form, setForm] = useState({
-        code: '',
-        manufacturer: '',
-        seats: [{ seatNumber: '', class: 'economy' }]
+  const [formData, setFormData] = useState({
+    airline_id: '',
+    aircraft_type: '',
+    custom_aircraft_type: '',
+    total_first_class_seats: '',
+    total_business_class_seats: '',
+    total_economy_class_seats: '',
+    status: '',
+    aircraft_code: '',
+    manufacturer: '',
+    custom_manufacturer: ''
+  });
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [aircrafts, setAircrafts] = useState([]);
+  const [airlines, setAirlines] = useState([]);
+
+  const aircraftTypes = [
+    'Airbus A321-200',
+    'Boeing 787-9 Dreamliner',
+    'ATR 72',
+    'Airbus A330-200',
+    'Airbus A350-900 XWB',
+    'Boeing 777',
+    'Boeing 737',
+    'khác'
+  ];
+
+  const manufacturers = ['Airbus', 'Boeing', 'ATR', 'khác'];
+
+  const statuses = ['Active', 'Maintenance', 'Retired'];
+
+  const fetchAircrafts = async () => {
+    try {
+      const res = await getAircrafts();
+      setAircrafts(res.data.data || []);
+    } catch (err) {
+      console.log('❌ Lỗi lấy danh sách aircraft:', err);
+      setError('Không thể tải danh sách aircraft: ' + err.message);
+    }
+  };
+
+  const fetchAirlines = async () => {
+    try {
+      const res = await getAirlines();
+      setAirlines(res.data.data || []);
+    } catch (err) {
+      console.log('❌ Lỗi lấy danh sách airlines:', err);
+      setError('Không thể tải danh sách hãng hàng không: ' + err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchAircrafts();
+    fetchAirlines();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem('token');
+    console.log('📊 Token gửi lên:', token);
+    const dataToSubmit = {
+      ...formData,
+      aircraft_type: formData.aircraft_type === 'khác' ? formData.custom_aircraft_type : formData.aircraft_type,
+      manufacturer: formData.manufacturer === 'khác' ? formData.custom_manufacturer : formData.manufacturer
+    };
+    console.log('📊 Dữ liệu gửi lên:', dataToSubmit);
+    const res = await createAircraft(dataToSubmit);
+    setSuccess('Tạo aircraft thành công!');
+    setFormData({
+      airline_id: '',
+      aircraft_type: '',
+      custom_aircraft_type: '',
+      total_first_class_seats: '',
+      total_business_class_seats: '',
+      total_economy_class_seats: '',
+      status: '',
+      aircraft_code: '',
+      manufacturer: '',
+      custom_manufacturer: ''
     });
+    fetchAircrafts();
+  } catch (err) {
+    console.log('❌ Lỗi tạo aircraft:', err);
+    if (err.response && err.response.status === 400) {
+      setError(err.response.data.error || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
+    } else if (err.response && err.response.status === 403) {
+      setError('Không có quyền truy cập. Vui lòng kiểm tra vai trò của bạn.');
+    } else {
+      setError('Tạo aircraft thất bại: ' + err.message);
+    }
+  }
+};
 
-    useEffect(() => {
-        setLoading(true);
-        getAircrafts()
-            .then(res => setAircrafts(res.data || []))
-            .catch(err => setError('Không thể tải tàu bay: ' + err.message))
-            .finally(() => setLoading(false));
-    }, []);
-
-    const handleAddSeat = () => {
-        setForm({ ...form, seats: [...form.seats, { seatNumber: '', class: 'economy' }] });
-    };
-
-    const handleSeatChange = (index, field, value) => {
-        const newSeats = [...form.seats];
-        newSeats[index][field] = value;
-        setForm({ ...form, seats: newSeats });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const newAircraft = await createAircraft(form);
-            setAircrafts([...aircrafts, newAircraft.data]);
-            setForm({ code: '', manufacturer: '', seats: [{ seatNumber: '', class: 'economy' }] });
-            alert('Thêm tàu bay thành công!');
-        } catch (err) {
-            setError('Không thể thêm tàu bay: ' + err.message);
-        }
-    };
-
-    if (loading) return <div className="text-center p-4">Đang tải...</div>;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto p-4"
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="container mx-auto p-4"
+    >
+      <h1 className="text-2xl font-bold mb-4 text-green-600">Quản lý Aircraft</h1>
+      {error && (
+        <div className="text-center p-4 text-red-500">
+          {error}
+          <p className="text-gray-600 mt-2">Vui lòng thử lại hoặc liên hệ quản trị viên.</p>
+        </div>
+      )}
+      {success && (
+        <div className="text-center p-4 text-green-500">
+          {success}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mb-8">
+        <div>
+          <label className="block text-gray-700 mb-2">Hãng Hàng Không</label>
+          <select
+            name="airline_id"
+            value={formData.airline_id}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          >
+            <option value="">Chọn hãng hàng không</option>
+            {airlines.map(airline => (
+              <option key={airline.id} value={airline.id}>
+                {airline.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Loại Máy Bay</label>
+          <select
+            name="aircraft_type"
+            value={formData.aircraft_type}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          >
+            <option value="">Chọn loại máy bay</option>
+            {aircraftTypes.map(type => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          {formData.aircraft_type === 'khác' && (
+            <input
+              type="text"
+              name="custom_aircraft_type"
+              value={formData.custom_aircraft_type}
+              onChange={handleChange}
+              className="mt-2 p-2 border rounded w-full"
+              placeholder="Nhập loại máy bay"
+              required
+            />
+          )}
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Số Ghế Hạng Nhất</label>
+          <input
+            type="number"
+            name="total_first_class_seats"
+            value={formData.total_first_class_seats}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+            min="0"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Số Ghế Hạng Thương Gia</label>
+          <input
+            type="number"
+            name="total_business_class_seats"
+            value={formData.total_business_class_seats}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+            min="0"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Số Ghế Hạng Phổ Thông</label>
+          <input
+            type="number"
+            name="total_economy_class_seats"
+            value={formData.total_economy_class_seats}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+            min="0"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Trạng Thái</label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          >
+            <option value="">Chọn trạng thái</option>
+            {statuses.map(status => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Mã Máy Bay</label>
+          <input
+            type="text"
+            name="aircraft_code"
+            value={formData.aircraft_code}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-2">Nhà Sản Xuất</label>
+          <select
+            name="manufacturer"
+            value={formData.manufacturer}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          >
+            <option value="">Chọn nhà sản xuất</option>
+            {manufacturers.map(manufacturer => (
+              <option key={manufacturer} value={manufacturer}>
+                {manufacturer}
+              </option>
+            ))}
+          </select>
+          {formData.manufacturer === 'khác' && (
+            <input
+              type="text"
+              name="custom_manufacturer"
+              value={formData.custom_manufacturer}
+              onChange={handleChange}
+              className="mt-2 p-2 border rounded w-full"
+              placeholder="Nhập nhà sản xuất"
+              required
+            />
+          )}
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="submit"
+          className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition w-full"
         >
-            <h1 className="text-3xl font-bold mb-6 text-blue-600">Quản lý tàu bay</h1>
-            {error && (
-                <div className="text-center p-4 text-red-500">
-                    {error}
-                </div>
-            )}
-            {/* Form thêm tàu bay */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Thêm tàu bay mới</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-gray-700 mb-2">Mã tàu bay</label>
-                        <input
-                            type="text"
-                            value={form.code}
-                            onChange={(e) => setForm({ ...form, code: e.target.value })}
-                            className="p-2 border rounded w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 mb-2">Hãng sản xuất</label>
-                        <input
-                            type="text"
-                            value={form.manufacturer}
-                            onChange={(e) => setForm({ ...form, manufacturer: e.target.value })}
-                            className="p-2 border rounded w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 mb-2">Danh sách ghế</label>
-                        {form.seats.map((seat, index) => (
-                            <div key={index} className="flex space-x-4 mb-2">
-                                <input
-                                    type="text"
-                                    placeholder="Số ghế (VD: A1)"
-                                    value={seat.seatNumber}
-                                    onChange={(e) => handleSeatChange(index, 'seatNumber', e.target.value)}
-                                    className="p-2 border rounded flex-1"
-                                    required
-                                />
-                                <select
-                                    value={seat.class}
-                                    onChange={(e) => handleSeatChange(index, 'class', e.target.value)}
-                                    className="p-2 border rounded flex-1"
-                                    required
-                                >
-                                    <option value="economy">Phổ thông</option>
-                                    <option value="business">Thương gia</option>
-                                </select>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={handleAddSeat}
-                            className="text-blue-500 hover:underline"
-                        >
-                            Thêm ghế
-                        </button>
-                    </div>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        type="submit"
-                        className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition w-full"
-                    >
-                        Thêm tàu bay
-                    </motion.button>
-                </form>
-            </div>
-            {/* Danh sách tàu bay */}
-            <div>
-                <h2 className="text-2xl font-semibold mb-4">Danh sách tàu bay</h2>
-                <div className="space-y-4">
-                    {aircrafts.length > 0 ? (
-                        aircrafts.map(aircraft => (
-                            <div key={aircraft._id} className="bg-white shadow-md rounded-lg p-4">
-                                <h3 className="text-xl font-semibold">{aircraft.code}</h3>
-                                <p>Hãng sản xuất: {aircraft.manufacturer}</p>
-                                <p>Ghế: {aircraft.seats.map(seat => `${seat.seatNumber} (${seat.class})`).join(', ')}</p>
-                            </div>
-                        ))
-                    ) : (
-                        <p>Không có tàu bay nào.</p>
-                    )}
-                </div>
-            </div>
-        </motion.div>
-    );
+          Tạo Aircraft
+        </motion.button>
+      </form>
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4 text-green-600">Danh sách Aircraft</h2>
+        {aircrafts.length === 0 ? (
+          <p className="text-gray-600">Chưa có aircraft nào.</p>
+        ) : (
+          <ul className="space-y-2">
+            {aircrafts.map(aircraft => (
+              <li key={aircraft.id} className="p-4 border rounded">
+                <p><strong>Mã Máy Bay:</strong> {aircraft.aircraft_code}</p>
+                <p><strong>Loại Máy Bay:</strong> {aircraft.aircraft_type}</p>
+                <p><strong>Nhà Sản Xuất:</strong> {aircraft.manufacturer}</p>
+                <p><strong>Trạng Thái:</strong> {aircraft.status}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </motion.div>
+  );
 }
 
 export default AdminAircrafts;

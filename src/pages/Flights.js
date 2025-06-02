@@ -1,194 +1,291 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getFlights, searchFlights } from '../services/api';
+import { getFlights, searchFlights, getAirports } from '../services/api';
 import { staticFlights } from '../data/flights';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Flights() {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const [flights, setFlights] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [search, setSearch] = useState({ from: '', to: '', date: '' });
-    const [ticketTypes, setTicketTypes] = useState({}); // Lưu loại giá vé cho từng chuyến bay
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [flights, setFlights] = useState([]);
+  const [airports, setAirports] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState({ from_airport_id: '', to_airport_id: '', date: '' });
+  const [ticketTypes, setTicketTypes] = useState({});
 
-    useEffect(() => {
-        setLoading(true);
-        getFlights()
-            .then(res => setFlights(res.data || []))
-            .catch(err => {
-                setError('Không thể tải dữ liệu: ' + err.message);
-                setFlights(staticFlights);
-            })
-            .finally(() => setLoading(false));
-    }, []);
+  useEffect(() => {
+    setLoading(true);
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    const fetchFlights = async () => {
         try {
-            const res = await searchFlights(search);
-            setFlights(res.data || []);
+            const flightsRes = await getFlights();
+            console.log('📊 Dữ liệu chuyến bay:', flightsRes);
+            const flightsData = Array.isArray(flightsRes.data?.data) ? flightsRes.data.data : [];
+            setFlights(flightsData);
+
+            // Trích xuất danh sách sân bay từ dữ liệu chuyến bay
+            const airportSet = new Set();
+            flightsData.forEach(flight => {
+                airportSet.add(JSON.stringify({
+                    id: flight.departure_airport_id,
+                    name: flight.departure_airport_name,
+                    code: flight.departure_airport_code
+                }));
+                airportSet.add(JSON.stringify({
+                    id: flight.arrival_airport_id,
+                    name: flight.arrival_airport_name,
+                    code: flight.arrival_airport_code
+                }));
+            });
+            const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
+            setAirports(uniqueAirports);
         } catch (err) {
-            setError('Không thể tìm kiếm: ' + err.message);
+            console.log('❌ Lỗi khi lấy danh sách chuyến bay:', err);
+            setError('Không thể tải danh sách chuyến bay: ' + err.message);
             setFlights(staticFlights);
+
+            // Trích xuất danh sách sân bay từ staticFlights
+            const airportSet = new Set();
+            staticFlights.forEach(flight => {
+                airportSet.add(JSON.stringify({
+                    id: flight.departure_airport_id,
+                    name: flight.departure_airport_name,
+                    code: flight.departure_airport_code
+                }));
+                airportSet.add(JSON.stringify({
+                    id: flight.arrival_airport_id,
+                    name: flight.arrival_airport_name,
+                    code: flight.arrival_airport_code
+                }));
+            });
+            const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
+            setAirports(uniqueAirports);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleTicketTypeChange = (flightId, type, value) => {
-        setTicketTypes(prev => ({
-            ...prev,
-            [flightId]: {
-                ...prev[flightId],
-                [type]: value
-            }
-        }));
-    };
+    fetchFlights();
+}, []);
 
-    const calculatePrice = (flightId, basePrice) => {
-        const ticketType = ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' };
-        let price = basePrice;
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!search.from_airport_id || !search.to_airport_id || !search.date) {
+      setError('Vui lòng chọn đầy đủ thông tin');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const searchData = {
+        legs: [
+          {
+            from_airport_id: search.from_airport_id, // UUID từ airport.id
+            to_airport_id: search.to_airport_id,     // UUID từ airport.id
+            date: search.date                        // Định dạng YYYY-MM-DD
+          }
+        ]
+      };
+      console.log('Dữ liệu tìm kiếm gửi đi:', searchData); // Log để debug
+      const res = await searchFlights(searchData);
+      console.log('Phản hồi từ API:', res.data); // Log để kiểm tra dữ liệu trả về
+      const flightsData = Array.isArray(res.data) ? res.data : [];
+      const sortedFlights = flightsData.sort((a, b) => new Date(a.departure_time) - new Date(b.departure_time));
+      setFlights(sortedFlights);
+      if (sortedFlights.length === 0) {
+        setError('Không tìm thấy chuyến bay nào phù hợp với tiêu chí của bạn.');
+      }
+    } catch (err) {
+      console.log('❌ Lỗi khi tìm kiếm:', err);
+      setError('Không thể tìm kiếm: ' + err.message);
+      setFlights(staticFlights);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        // Tính giá theo loại chuyến (một chiều/khứ hồi)
-        if (ticketType.tripType === 'round-trip') {
-            price *= 2; // Giả định khứ hồi gấp đôi giá một chiều
-        }
+  const handleTicketTypeChange = (flightId, type, value) => {
+    setTicketTypes(prev => ({
+      ...prev,
+      [flightId]: {
+        ...prev[flightId],
+        [type]: value
+      }
+    }));
+  };
 
-        // Tính giá theo hạng vé (phổ thông/vip/thương gia)
-        if (ticketType.classType === 'vip') {
-            price *= 1.3; // Giả định VIP tăng 30%
-        } else if (ticketType.classType === 'business') {
-            price *= 1.5; // Giả định thương gia tăng 50%
-        }
+  const calculatePrice = (flightId, basePrice) => {
+    const ticketType = ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' };
+    let price = basePrice;
 
-        return price;
-    };
+    if (ticketType.tripType === 'round-trip') {
+      price *= 2;
+    }
 
-    const handleBookFlight = (flightId) => {
-        if (!user) {
-            navigate('/login');
-        } else {
-            navigate(`/booking/${flightId}`);
-        }
-    };
+    if (ticketType.classType === 'business') {
+      price *= 1.5;
+    } else if (ticketType.classType === 'first') {
+      price *= 2;
+    }
 
-    if (loading) return <div className="text-center p-4">Đang tải...</div>;
+    return price;
+  };
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto p-4"
+  const handleBookFlight = (flightId) => {
+    if (!user) {
+      navigate('/login');
+    } else {
+      navigate(`/booking/${flightId}`);
+    }
+  };
+
+  if (loading) return <div className="text-center p-4">Đang tải...</div>;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="container mx-auto p-6"
+    >
+      <h1 className="text-4xl font-bold mb-8 text-green-700">Tìm chuyến bay</h1>
+      {error && (
+        <div className="text-center p-4 text-red-500 bg-red-100 rounded-lg mb-6">
+          {error}
+          <p className="text-gray-600 mt-2">Hiển thị dữ liệu tĩnh do lỗi từ backend.</p>
+        </div>
+      )}
+
+      {/* Search Form */}
+       <form onSubmit={handleSearch} className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+        <select
+          value={search.from_airport_id}
+          onChange={(e) => setSearch({ ...search, from_airport_id: e.target.value })}
+          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
+          required
         >
-            <h1 className="text-3xl font-bold mb-6 text-green-600">Tìm chuyến bay</h1>
-            {error && (
-                <div className="text-center p-4 text-red-500">
-                    {error}
-                    <p className="text-gray-600 mt-2">Hiển thị dữ liệu tĩnh do lỗi từ backend.</p>
-                </div>
-            )}
+          <option value="">Chọn địa điểm đi</option>
+          {airports.map(airport => (
+            <option key={airport.id} value={airport.id}>
+              {airport.name} ({airport.code})
+            </option>
+          ))}
+        </select>
+        <select
+          value={search.to_airport_id}
+          onChange={(e) => setSearch({ ...search, to_airport_id: e.target.value })}
+          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
+          required
+        >
+          <option value="">Chọn địa điểm đến</option>
+          {airports.map(airport => (
+            <option key={airport.id} value={airport.id}>
+              {airport.name} ({airport.code})
+            </option>
+          ))}
+        </select>
+        <input
+          type="date"
+          value={search.date}
+          onChange={(e) => setSearch({ ...search, date: e.target.value })}
+          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
+          required
+        />
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="submit"
+          className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition shadow-md"
+        >
+          Tìm kiếm
+        </motion.button>
+      </form>
 
-            {/* Form tìm kiếm */}
-            <form onSubmit={handleSearch} className="mb-6 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <input
-                    type="text"
-                    placeholder="Địa điểm đi"
-                    value={search.from}
-                    onChange={(e) => setSearch({ ...search, from: e.target.value })}
-                    className="p-2 border rounded flex-1"
-                />
-                <input
-                    type="text"
-                    placeholder="Địa điểm đến"
-                    value={search.to}
-                    onChange={(e) => setSearch({ ...search, to: e.target.value })}
-                    className="p-2 border rounded flex-1"
-                />
-                <input
-                    type="date"
-                    value={search.date}
-                    onChange={(e) => setSearch({ ...search, date: e.target.value })}
-                    className="p-2 border rounded flex-1"
-                />
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="submit"
-                    className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
+      {/* Flights Table */}
+      <div className="overflow-x-auto shadow-lg rounded-lg">
+        <table className="w-full bg-white rounded-lg">
+          <thead>
+            <tr className="bg-green-100 text-green-800">
+              <th className="px-6 py-4 text-left font-semibold">Số Hiệu Chuyến Bay</th>
+              <th className="px-6 py-4 text-left font-semibold">Hãng Hàng Không</th>
+              <th className="px-6 py-4 text-left font-semibold">Tàu Bay</th>
+              <th className="px-6 py-4 text-left font-semibold">Địa Điểm Đi</th>
+              <th className="px-6 py-4 text-left font-semibold">Địa Điểm Đến</th>
+              <th className="px-6 py-4 text-left font-semibold">Ngày Khởi Hành</th>
+              <th className="px-6 py-4 text-left font-semibold">Giờ Khởi Hành</th>
+              <th className="px-6 py-4 text-left font-semibold">Ngày Đến</th>
+              <th className="px-6 py-4 text-left font-semibold">Giờ Đến</th>
+              <th className="px-6 py-4 text-left font-semibold">Loại Giá Vé</th>
+              <th className="px-6 py-4 text-left font-semibold">Giá Tiền (VND)</th>
+              <th className="px-6 py-4 text-left font-semibold">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {flights.length > 0 ? (
+              flights.map((flight, index) => (
+                <tr
+                  key={flight.id}
+                  className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-50 transition-colors duration-200`}
                 >
-                    Tìm kiếm
-                </motion.button>
-            </form>
-
-            {/* Bảng danh sách chuyến bay */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white shadow-md rounded-lg">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="px-4 py-2 text-left">Địa điểm đi</th>
-                            <th className="px-4 py-2 text-left">Địa điểm đến</th>
-                            <th className="px-4 py-2 text-left">Ngày bay</th>
-                            <th className="px-4 py-2 text-left">Loại giá vé</th>
-                            <th className="px-4 py-2 text-left">Giá tiền (VND)</th>
-                            <th className="px-4 py-2 text-left">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {flights.length > 0 ? (
-                            flights.map(flight => (
-                                <tr key={flight.id} className="border-b">
-                                    <td className="px-4 py-2">{flight.departure}</td>
-                                    <td className="px-4 py-2">{flight.destination}</td>
-                                    <td className="px-4 py-2">{new Date(flight.departureTime).toLocaleString()}</td>
-                                    <td className="px-4 py-2">
-                                        <select
-                                            value={ticketTypes[flight.id]?.tripType || 'one-way'}
-                                            onChange={(e) => handleTicketTypeChange(flight.id, 'tripType', e.target.value)}
-                                            className="p-1 border rounded mr-2"
-                                        >
-                                            <option value="one-way">Một chiều</option>
-                                            <option value="round-trip">Khứ hồi</option>
-                                        </select>
-                                        <select
-                                            value={ticketTypes[flight.id]?.classType || 'economy'}
-                                            onChange={(e) => handleTicketTypeChange(flight.id, 'classType', e.target.value)}
-                                            className="p-1 border rounded"
-                                        >
-                                            <option value="economy">Phổ thông</option>
-                                            <option value="vip">VIP</option>
-                                            <option value="business">Thương gia</option>
-                                        </select>
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        {calculatePrice(flight.id, flight.price).toLocaleString()}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={() => handleBookFlight(flight.id)}
-                                            className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
-                                        >
-                                            Đặt vé
-                                        </motion.button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="px-4 py-2 text-center">Không tìm thấy chuyến bay nào.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </motion.div>
-    );
+                  <td className="px-6 py-4">{flight.flight_number}</td>
+                  <td className="px-6 py-4">{flight.airline_name || 'N/A'}</td>
+                  <td className="px-6 py-4">{flight.aircraft_type || 'N/A'}</td>
+                  <td className="px-6 py-4">
+                    {flight.departure_airport_name} ({flight.departure_airport_code})
+                  </td>
+                  <td className="px-6 py-4">
+                    {flight.arrival_airport_name} ({flight.arrival_airport_code})
+                  </td>
+                  <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={ticketTypes[flight.id]?.tripType || 'one-way'}
+                      onChange={(e) => handleTicketTypeChange(flight.id, 'tripType', e.target.value)}
+                      className="p-2 border rounded mr-2 bg-gray-100 focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="one-way">Một chiều</option>
+                      <option value="round-trip">Khứ hồi</option>
+                    </select>
+                    <select
+                      value={ticketTypes[flight.id]?.classType || 'economy'}
+                      onChange={(e) => handleTicketTypeChange(flight.id, 'classType', e.target.value)}
+                      className="p-2 border rounded bg-gray-100 focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="economy">Phổ thông</option>
+                      <option value="business">Thương gia</option>
+                      <option value="first">Hạng nhất</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    {calculatePrice(flight.id, flight.base_economy_class_price).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleBookFlight(flight.id)}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition shadow-md"
+                    >
+                      Đặt vé
+                    </motion.button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="12" className="px-6 py-4 text-center">Không tìm thấy chuyến bay nào.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
+  );
 }
 
 export default Flights;
