@@ -35,8 +35,28 @@
 
         // Dữ liệu tĩnh cho ưu đãi và đánh giá
         const specialOffers = [
-            { id: 1, title: "Khuyến mãi hè", description: "Giảm 30% cho các chuyến bay nội địa!", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e", tag: "Hot", tagColor: "bg-red-500" },
-            { id: 2, title: "Bay quốc tế giá rẻ", description: "Giảm 20% cho các chuyến bay đến Thái Lan!", image: "https://images.unsplash.com/photo-1559592417-7d9f9c8d7485", tag: "International", tagColor: "bg-blue-500" }
+            { id: 1, title: "Khuyến mãi hè", description: "Giảm 30% cho các chuyến bay nội địa!", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e", tag: "Hot", tagColor: "bg-green-600" },
+            { id: 2, title: "Bay quốc tế giá rẻ", description: "Giảm 20% cho các chuyến bay đến Thái Lan!", image: "https://images.unsplash.com/photo-1559592417-7d9f9c8d7485", tag: "International", tagColor: "bg-green-600" }
+        ];
+
+        // Dữ liệu tĩnh cho thông báo
+        const notifications = [
+            { 
+                id: 1, 
+                title: "Thay đổi lịch bay", 
+                description: "Một số chuyến bay đến Đà Nẵng có thể bị ảnh hưởng do thời tiết xấu.", 
+                image: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1", 
+                tag: "Important", 
+                tagColor: "bg-green-600" 
+            },
+            { 
+                id: 2, 
+                title: "Nâng cấp sân bay", 
+                description: "Sân bay Tân Sơn Nhất đang được nâng cấp, vui lòng đến sớm 30 phút.", 
+                image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05", 
+                tag: "Notice", 
+                tagColor: "bg-green-600" 
+            }
         ];
 
         const testimonials = [
@@ -298,7 +318,7 @@
 
 
                 {/* Ưu đãi đặc biệt */}
-                <Section className="container mx-auto p-2 bg-yellow-50" delay={0.4}>
+                <Section className="container mx-auto p-2 bg-green-50" delay={0.4}>
                     <h2 className="text-3xl font-bold mb-6 text-green-600">Ưu đãi đặc biệt</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {specialOffers.map((offer, index) => (
@@ -307,20 +327,20 @@
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="bg-white shadow-md rounded-lg overflow-hidden"
+                                className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                             >
                                 <img src={offer.image} alt={offer.title} className="w-full h-48 object-cover" />
-                                <div className="p-2">
+                                <div className="p-4">
                                     <div className="flex items-center mb-2">
                                         <span className={`${offer.tagColor} text-white text-xs font-bold px-2 py-1 rounded`}>{offer.tag}</span>
-                                        <h3 className="text-xl font-semibold ml-2">{offer.title}</h3>
+                                        <h3 className="text-xl font-semibold ml-2 text-gray-800">{offer.title}</h3>
                                     </div>
-                                    <p className="text-gray-600">{offer.description}</p>
+                                    <p className="text-gray-600 mb-4">{offer.description}</p>
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => navigate('/flights')}
-                                        className="mt-2 bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
+                                        className="w-full bg-green-600 text-white p-2 rounded hover:bg-orange-500 transition-colors"
                                     >
                                         Đặt ngay
                                     </motion.button>
@@ -330,7 +350,45 @@
                     </div>
                 </Section>
 
-                    {/* Đường phân cách */}
+                {/* Đường phân cách */}
+                <hr className="border-t border-gray-200 my-8" />
+
+                {/* Thông báo */}
+                <Section className="container mx-auto p-2 bg-green-50/50" delay={0.5}>
+                    <h2 className="text-3xl font-bold mb-6 text-green-600">Thông báo</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {notifications.map((notification, index) => (
+                            <motion.div
+                                key={notification.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                            >
+                                <img src={notification.image} alt={notification.title} className="w-full h-48 object-cover" />
+                                <div className="p-4">
+                                    <div className="flex items-center mb-2">
+                                        <span className={`${notification.tagColor} text-white text-xs font-bold px-2 py-1 rounded`}>
+                                            {notification.tag}
+                                        </span>
+                                        <h3 className="text-xl font-semibold ml-2 text-gray-800">{notification.title}</h3>
+                                    </div>
+                                    <p className="text-gray-600 mb-4">{notification.description}</p>
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => navigate('/notifications')}
+                                        className="w-full bg-green-600 text-white p-2 rounded hover:bg-orange-500 transition-colors"
+                                    >
+                                        Xem ngay
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </Section>
+
+                {/* Đường phân cách */}
             <hr className="border-t border-gray-300 my-8" />
 
                 {/* Đánh giá khách hàng */}
