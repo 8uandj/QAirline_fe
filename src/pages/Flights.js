@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getFlights, searchFlights, getAirports } from '../services/api';
+import { getFlights, searchFlights } from '../services/api';
 import { staticFlights } from '../data/flights';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 function Flights() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [flights, setFlights] = useState([]);
   const [airports, setAirports] = useState([]);
@@ -15,60 +13,65 @@ function Flights() {
   const [search, setSearch] = useState({ from_airport_id: '', to_airport_id: '', date: '' });
   const [ticketTypes, setTicketTypes] = useState({});
 
+  // Define classTypeNames for ticket class display
+  const classTypeNames = {
+    economy: 'Phổ thông',
+    business: 'Thương gia',
+    first: 'Hạng nhất'
+  };
+
   useEffect(() => {
     setLoading(true);
 
     const fetchFlights = async () => {
-        try {
-            const flightsRes = await getFlights();
-            console.log('📊 Dữ liệu chuyến bay:', flightsRes);
-            const flightsData = Array.isArray(flightsRes.data?.data) ? flightsRes.data.data : [];
-            setFlights(flightsData);
+      try {
+        const flightsRes = await getFlights();
+        console.log('Flight data:', flightsRes.data);
+        const flightsData = Array.isArray(flightsRes.data.data) ? flightsRes.data.data : [];
+        setFlights(flightsData);
 
-            // Trích xuất danh sách sân bay từ dữ liệu chuyến bay
-            const airportSet = new Set();
-            flightsData.forEach(flight => {
-                airportSet.add(JSON.stringify({
-                    id: flight.departure_airport_id,
-                    name: flight.departure_airport_name,
-                    code: flight.departure_airport_code
-                }));
-                airportSet.add(JSON.stringify({
-                    id: flight.arrival_airport_id,
-                    name: flight.arrival_airport_name,
-                    code: flight.arrival_airport_code
-                }));
-            });
-            const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
-            setAirports(uniqueAirports);
-        } catch (err) {
-            console.log('❌ Lỗi khi lấy danh sách chuyến bay:', err);
-            setError('Không thể tải danh sách chuyến bay: ' + err.message);
-            setFlights(staticFlights);
+        const airportSet = new Set();
+        flightsData.forEach(flight => {
+          airportSet.add(JSON.stringify({
+            id: flight.departure_airport_id,
+            name: flight.departure_airport_name,
+            code: flight.departure_airport_code
+          }));
+          airportSet.add(JSON.stringify({
+            id: flight.arrival_airport_id,
+            name: flight.arrival_airport_name,
+            code: flight.arrival_airport_code
+          }));
+        });
+        const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
+        setAirports(uniqueAirports);
+      } catch (err) {
+        console.error('Error fetching flights:', err);
+        setError('Không thể tải danh sách chuyến bay: ' + err.message);
+        setFlights(staticFlights);
 
-            // Trích xuất danh sách sân bay từ staticFlights
-            const airportSet = new Set();
-            staticFlights.forEach(flight => {
-                airportSet.add(JSON.stringify({
-                    id: flight.departure_airport_id,
-                    name: flight.departure_airport_name,
-                    code: flight.departure_airport_code
-                }));
-                airportSet.add(JSON.stringify({
-                    id: flight.arrival_airport_id,
-                    name: flight.arrival_airport_name,
-                    code: flight.arrival_airport_code
-                }));
-            });
-            const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
-            setAirports(uniqueAirports);
-        } finally {
-            setLoading(false);
-        }
+        const airportSet = new Set();
+        staticFlights.forEach(flight => {
+          airportSet.add(JSON.stringify({
+            id: flight.departure_airport_id,
+            name: flight.departure_airport_name,
+            code: flight.departure_airport_code
+          }));
+          airportSet.add(JSON.stringify({
+            id: flight.arrival_airport_id,
+            name: flight.arrival_airport_name,
+            code: flight.arrival_airport_code
+          }));
+        });
+        const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
+        setAirports(uniqueAirports);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchFlights();
-}, []);
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -82,23 +85,23 @@ function Flights() {
       const searchData = {
         legs: [
           {
-            from_airport_id: search.from_airport_id, // UUID từ airport.id
-            to_airport_id: search.to_airport_id,     // UUID từ airport.id
-            date: search.date                        // Định dạng YYYY-MM-DD
+            from_airport_id: search.from_airport_id,
+            to_airport_id: search.to_airport_id,
+            date: search.date
           }
         ]
       };
-      console.log('Dữ liệu tìm kiếm gửi đi:', searchData); // Log để debug
+      console.log('Search data:', searchData);
       const res = await searchFlights(searchData);
-      console.log('Phản hồi từ API:', res.data); // Log để kiểm tra dữ liệu trả về
+      console.log('Search response:', res.data);
       const flightsData = Array.isArray(res.data) ? res.data : [];
       const sortedFlights = flightsData.sort((a, b) => new Date(a.departure_time) - new Date(b.departure_time));
       setFlights(sortedFlights);
       if (sortedFlights.length === 0) {
-        setError('Không tìm thấy chuyến bay nào phù hợp với tiêu chí của bạn.');
+        setError('Không tìm thấy chuyến bay nào phù hợp.');
       }
     } catch (err) {
-      console.log('❌ Lỗi khi tìm kiếm:', err);
+      console.error('Search error:', err);
       setError('Không thể tìm kiếm: ' + err.message);
       setFlights(staticFlights);
     } finally {
@@ -134,10 +137,16 @@ function Flights() {
   };
 
   const handleBookFlight = (flightId) => {
-    if (!user) {
-      navigate('/login');
+    const selectedFlight = flights.find(flight => flight.id === flightId);
+    if (selectedFlight) {
+      navigate(`/booking/${flightId}`, {
+        state: {
+          flight: selectedFlight,
+          ticketType: ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' }
+        }
+      });
     } else {
-      navigate(`/booking/${flightId}`);
+      setError('Không tìm thấy chuyến bay.');
     }
   };
 
@@ -159,7 +168,7 @@ function Flights() {
       )}
 
       {/* Search Form */}
-       <form onSubmit={handleSearch} className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+      <form onSubmit={handleSearch} className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
         <select
           value={search.from_airport_id}
           onChange={(e) => setSearch({ ...search, from_airport_id: e.target.value })}
@@ -224,58 +233,67 @@ function Flights() {
           </thead>
           <tbody>
             {flights.length > 0 ? (
-              flights.map((flight, index) => (
-                <tr
-                  key={flight.id}
-                  className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-50 transition-colors duration-200`}
-                >
-                  <td className="px-6 py-4">{flight.flight_number}</td>
-                  <td className="px-6 py-4">{flight.airline_name || 'N/A'}</td>
-                  <td className="px-6 py-4">{flight.aircraft_type || 'N/A'}</td>
-                  <td className="px-6 py-4">
-                    {flight.departure_airport_name} ({flight.departure_airport_code})
-                  </td>
-                  <td className="px-6 py-4">
-                    {flight.arrival_airport_name} ({flight.arrival_airport_code})
-                  </td>
-                  <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleDateString()}</td>
-                  <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                  <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleDateString()}</td>
-                  <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={ticketTypes[flight.id]?.tripType || 'one-way'}
-                      onChange={(e) => handleTicketTypeChange(flight.id, 'tripType', e.target.value)}
-                      className="p-2 border rounded mr-2 bg-gray-100 focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="one-way">Một chiều</option>
-                      <option value="round-trip">Khứ hồi</option>
-                    </select>
-                    <select
-                      value={ticketTypes[flight.id]?.classType || 'economy'}
-                      onChange={(e) => handleTicketTypeChange(flight.id, 'classType', e.target.value)}
-                      className="p-2 border rounded bg-gray-100 focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="economy">Phổ thông</option>
-                      <option value="business">Thương gia</option>
-                      <option value="first">Hạng nhất</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4">
-                    {calculatePrice(flight.id, flight.base_economy_class_price).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleBookFlight(flight.id)}
-                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition shadow-md"
-                    >
-                      Đặt vé
-                    </motion.button>
-                  </td>
-                </tr>
-              ))
+              flights.map((flight, index) => {
+                const availableClasses = ['economy', 'business', 'first'].filter(cls => 
+                  flight.available_seats && flight.available_seats[cls] > 0
+                );
+                if (availableClasses.length === 0) return null; // Ẩn chuyến bay nếu hết ghế
+
+                return (
+                  <tr
+                    key={flight.id}
+                    className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-50 transition-colors duration-200`}
+                  >
+                    <td className="px-6 py-4">{flight.flight_number}</td>
+                    <td className="px-6 py-4">{flight.airline_name || 'N/A'}</td>
+                    <td className="px-6 py-4">{flight.aircraft_type || 'N/A'}</td>
+                    <td className="px-6 py-4">
+                      {flight.departure_airport_name} ({flight.departure_airport_code})
+                    </td>
+                    <td className="px-6 py-4">
+                      {flight.arrival_airport_name} ({flight.arrival_airport_code})
+                    </td>
+                    <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">{new Date(flight.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">{new Date(flight.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={ticketTypes[flight.id]?.tripType || 'one-way'}
+                        onChange={(e) => handleTicketTypeChange(flight.id, 'tripType', e.target.value)}
+                        className="p-2 border rounded mr-2 bg-gray-100 focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="one-way">Một chiều</option>
+                        <option value="round-trip">Khứ hồi</option>
+                      </select>
+                      <select
+                        value={ticketTypes[flight.id]?.classType || availableClasses[0]}
+                        onChange={(e) => handleTicketTypeChange(flight.id, 'classType', e.target.value)}
+                        className="p-2 border rounded bg-gray-100 focus:ring-2 focus:ring-green-500"
+                      >
+                        {availableClasses.map(cls => (
+                          <option key={cls} value={cls}>
+                            {classTypeNames[cls]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-4">
+                      {calculatePrice(flight.id, flight.base_economy_class_price).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleBookFlight(flight.id)}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition shadow-md"
+                      >
+                        Đặt vé
+                      </motion.button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="12" className="px-6 py-4 text-center">Không tìm thấy chuyến bay nào.</td>

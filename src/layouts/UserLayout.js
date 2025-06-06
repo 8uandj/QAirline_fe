@@ -15,7 +15,8 @@ function UserLayout() {
     if (user && user.role === 'admin') {
       navigate('/admin');
     }
-    const protectedRoutes = ['/tickets', '/booking'];
+    // Không còn kiểm tra /tickets và /booking
+    const protectedRoutes = []; // Các route cần bảo vệ (nếu có, thêm vào đây)
     const currentPath = window.location.pathname;
     if (!user && protectedRoutes.some((route) => currentPath.startsWith(route))) {
       navigate('/login');
@@ -23,7 +24,7 @@ function UserLayout() {
     setIsLoading(false);
   }, [user, navigate]);
 
-  // Animation variants for main content
+  // Animation variants cho nội dung chính
   const mainVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }

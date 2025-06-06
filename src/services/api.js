@@ -3,16 +3,19 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000/api';
 
 // Hàm tiện ích để lấy header xác thực
-const getAuthHeaders = (includeUserId = false) => {
+const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
   const headers = {
-    Authorization: `Bearer ${token || ''}`,
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   };
-  if (includeUserId && userId) {
-    headers['X-User-Id'] = userId; // Chỉ bao gồm nếu backend yêu cầu
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
+  if (userId) {
+    headers['x-user-id'] = userId; // Header gây lỗi CORS
+  }
+  console.log('Auth headers:', headers); // Debug
   return headers;
 };
 
@@ -25,8 +28,12 @@ export const searchFlights = (data) => {
  return axios.post(`${API_URL}/flights/search`, data, { headers: getAuthHeaders() });
 };
 
-export const getFlight = (id) => {
-  return axios.get(`${API_URL}/flights/${id}`, { headers: getAuthHeaders() });
+export const getFlight = (flightId) => {
+    return axios.get(`${API_URL}/flights/${flightId}`, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 };
 
 export const delayFlight = (id, data) => {
@@ -39,11 +46,19 @@ export const createFlight = (data) => {
 
 // API Vé
 export const bookTicket = (data) => {
-  return axios.post(`${API_URL}/tickets/book`, data, { headers: getAuthHeaders(true) });
+    return axios.post(`${API_URL}/tickets/book`, data, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 };
 
 export const bookMultipleTickets = (data) => {
   return axios.post(`${API_URL}/tickets/book-multiple`, data, { headers: getAuthHeaders(true) });
+};
+
+export const bookTicketWithCustomer = (data) => {
+    return axios.post(`${API_URL}/tickets/book-with-customer`, data);
 };
 
 export const cancelTicket = (id) => {
@@ -90,13 +105,17 @@ export const loginCustomer = (data) => {
 
 export const registerCustomer = (data) => {
   const payload = {
-    username: data.username || '',
+    username: data.username || data.email, // Sử dụng email nếu username rỗng
     email: data.email,
     password: data.password,
     first_name: data.first_name,
-    last_name: data.last_name || '',
+    last_name: data.last_name || ''
   };
-  return axios.post(`${API_URL}/customer/register`, payload, { headers: getAuthHeaders() });
+  return axios.post(`${API_URL}/customer/register`, payload, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 };
 
 export const logoutEmployee = () => {
