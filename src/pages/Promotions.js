@@ -56,7 +56,7 @@ function Promotions() {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="mt-2 bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
+                                        className="mt-2 bg-green-600 text-white p-2 rounded hover:bg-orange-500 transition-colors"
                                     >
                                         Đặt ngay
                                     </motion.button>

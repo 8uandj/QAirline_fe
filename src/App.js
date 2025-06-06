@@ -11,6 +11,10 @@ import Promotions from './pages/Promotions';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Destination from './pages/Destination';
+import AboutUs from './pages/AboutUs';
+import Contact from './pages/Contact';
+import Services from './pages/Services';
+import FAQ from './pages/FAQ';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminAnnouncements from './pages/admin/Announcements';
 import AdminAircrafts from './pages/admin/Aircrafts';
@@ -119,6 +123,10 @@ function App() {
                         <Route path="/tickets" element={<Tickets />} />
                         <Route path="/promotions" element={<Promotions />} />
                         <Route path="/destination/:name" element={<Destination destinations={popularDestinations} />} />
+                        <Route path="/about" element={<AboutUs />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/services" element={<Services />} />
+                        <Route path="/faq" element={<FAQ />} />
                     </Route>
 
                     {/* Giao diện quản trị */}
