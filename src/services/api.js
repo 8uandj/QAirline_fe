@@ -94,7 +94,7 @@ export const loginEmployee = (data) => {
     email: data.email,
     password: data.password,
   };
-  return axios.post(`${API_URL}/employee/login`, payload, { headers: getAuthHeaders() });
+  return axios.post(`${API_URL}/auth/login`, payload, { headers: getAuthHeaders() });
 };
 
 export const loginCustomer = (data) => {
@@ -102,7 +102,7 @@ export const loginCustomer = (data) => {
     email: data.email,
     password: data.password,
   };
-  return axios.post(`${API_URL}/customer/login`, payload, { headers: getAuthHeaders() });
+  return axios.post(`${API_URL}/auth/login`, payload, { headers: getAuthHeaders() });
 };
 
 export const registerCustomer = (data) => {
@@ -113,7 +113,7 @@ export const registerCustomer = (data) => {
     first_name: data.first_name,
     last_name: data.last_name || ''
   };
-  return axios.post(`${API_URL}/customer/register`, payload, {
+  return axios.post(`${API_URL}/auth/register`, payload, {
     headers: {
       'Content-Type': 'application/json'
     }

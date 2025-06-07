@@ -38,20 +38,22 @@ function AdminAircrafts() {
   const fetchAircrafts = async () => {
     try {
       const res = await getAircrafts();
-      setAircrafts(res.data.data || []);
+      setAircrafts(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (err) {
       console.log('❌ Lỗi lấy danh sách aircraft:', err);
       setError('Không thể tải danh sách aircraft: ' + err.message);
+      setAircrafts([]);
     }
   };
 
   const fetchAirlines = async () => {
     try {
       const res = await getAirlines();
-      setAirlines(res.data.data || []);
+      setAirlines(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (err) {
       console.log('❌ Lỗi lấy danh sách airlines:', err);
       setError('Không thể tải danh sách hãng hàng không: ' + err.message);
+      setAirlines([]);
     }
   };
 

@@ -18,34 +18,31 @@ function Login() {
       let res;
       if (role === 'customer') {
         res = await loginCustomer(data);
-        if (!res.data || !res.data.user || !res.data.user.id) {
+        if (!res.data || !res.data.success || !res.data.data || !res.data.data.user) {
           throw new Error('Dữ liệu người dùng không hợp lệ');
         }
-        login(res.data);
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('userId', res.data.user.id);
-        localStorage.setItem('email', res.data.user.email);
-        localStorage.setItem('role', 'customer');
-        localStorage.setItem('username', res.data.user.username || '');
-        localStorage.setItem('first_name', res.data.user.first_name);
-        localStorage.setItem('last_name', res.data.user.last_name || '');
+        login(res.data.data);
+        localStorage.setItem('token', res.data.data.token);
+        localStorage.setItem('userId', res.data.data.user.id);
+        localStorage.setItem('email', res.data.data.user.email);
+        localStorage.setItem('role', res.data.data.user.role);
+        localStorage.setItem('username', res.data.data.user.username || '');
+        localStorage.setItem('first_name', res.data.data.user.first_name);
+        localStorage.setItem('last_name', res.data.data.user.last_name || '');
         navigate('/');
       } else {
         res = await loginEmployee(data);
-        console.log('📊 Phản hồi từ API đăng nhập nhân viên:', res.data);
-        if (!res.data || !res.data.employee || !res.data.employee.id) {
-          throw new Error('Dữ liệu nhân viên không hợp lệ');
+        if (!res.data || !res.data.success || !res.data.data || !res.data.data.user) {
+          throw new Error('Dữ liệu người dùng không hợp lệ');
         }
-        // Chuẩn hóa vai trò trước khi lưu
-        const employeeRole = res.data.employee.role.toLowerCase();
-        login(res.data);
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('userId', res.data.employee.id);
-        localStorage.setItem('email', res.data.employee.email);
-        localStorage.setItem('role', employeeRole);
-        localStorage.setItem('first_name', res.data.employee.first_name || '');
-        localStorage.setItem('last_name', res.data.employee.last_name || '');
-        if (employeeRole === 'admin') {
+        login(res.data.data);
+        localStorage.setItem('token', res.data.data.token);
+        localStorage.setItem('userId', res.data.data.user.id);
+        localStorage.setItem('email', res.data.data.user.email);
+        localStorage.setItem('role', res.data.data.user.role);
+        localStorage.setItem('first_name', res.data.data.user.first_name || '');
+        localStorage.setItem('last_name', res.data.data.user.last_name || '');
+        if (res.data.data.user.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/');
