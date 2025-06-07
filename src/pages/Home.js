@@ -22,7 +22,7 @@
                 {children}
             </motion.section>
         );
-    };
+    }
 
     function Home({ destinations }) {
         const { register, handleSubmit } = useForm();
@@ -72,27 +72,48 @@
             const fetchData = async () => {
                 try {
                     const flightsRes = await getFlights();
-                    const flights = flightsRes.data.data || staticFlights;
-                    const sortedFlights = flights.sort((a, b) => a.price - b.price).slice(0, 3);
+                    console.log('API Response:', flightsRes.data); // Debug log
+                    
+                    // Kiểm tra cấu trúc dữ liệu trả về
+                    const flights = flightsRes.data.data || flightsRes.data || staticFlights;
+                    
+                    // Chuyển đổi dữ liệu để phù hợp với format hiển thị
+                    const formattedFlights = flights.map(flight => ({
+                        id: flight.id,
+                        flightNumber: flight.flight_number || `VN${flight.id.slice(0, 4)}`,
+                        departure: flight.source_airport_name || flight.departure,
+                        arrival: flight.destination_airport_name || flight.arrival,
+                        departureTime: new Date(flight.departure_time).toLocaleTimeString(),
+                        arrivalTime: new Date(flight.arrival_time).toLocaleTimeString(),
+                        price: flight.price || 1500000, // Giá mặc định nếu không có
+                        availableSeats: flight.available_seats || 45 // Số ghế mặc định nếu không có
+                    }));
+
+                    const sortedFlights = formattedFlights.sort((a, b) => a.price - b.price).slice(0, 3);
                     setFeaturedFlights(sortedFlights);
 
                     // Trích xuất danh sách sân bay từ dữ liệu chuyến bay
                     const airportSet = new Set();
                     flights.forEach(flight => {
-                        airportSet.add(JSON.stringify({
-                            id: flight.departure_airport_id,
-                            name: flight.departure_airport_name,
-                            code: flight.departure_airport_code
-                        }));
-                        airportSet.add(JSON.stringify({
-                            id: flight.arrival_airport_id,
-                            name: flight.arrival_airport_name,
-                            code: flight.arrival_airport_code
-                        }));
+                        if (flight.source_airport_id) {
+                            airportSet.add(JSON.stringify({
+                                id: flight.source_airport_id,
+                                name: flight.source_airport_name,
+                                code: flight.source_airport_code
+                            }));
+                        }
+                        if (flight.destination_airport_id) {
+                            airportSet.add(JSON.stringify({
+                                id: flight.destination_airport_id,
+                                name: flight.destination_airport_name,
+                                code: flight.destination_airport_code
+                            }));
+                        }
                     });
                     const uniqueAirports = Array.from(airportSet).map(airport => JSON.parse(airport));
                     setAirports(uniqueAirports);
                 } catch (err) {
+                    console.error('Error fetching flights:', err);
                     setError('Không thể tải dữ liệu: ' + err.message);
                     const sortedStaticFlights = staticFlights.sort((a, b) => a.price - b.price).slice(0, 3);
                     setFeaturedFlights(sortedStaticFlights);
@@ -190,9 +211,9 @@
                                 {...register('departure')}
                                 className="p-1 border rounded flex-1"
                             >
-                                <option value="">Chọn điểm đi</option>
+                                <option key="default-departure" value="">Chọn điểm đi</option>
                                 {airports.map(airport => (
-                                    <option key={airport.id} value={airport.id}>
+                                    <option key={`departure-${airport.id}`} value={airport.id}>
                                         {airport.name} ({airport.code})
                                     </option>
                                 ))}
@@ -201,9 +222,9 @@
                                 {...register('destination')}
                                 className="p-1 border rounded flex-1"
                             >
-                                <option value="">Chọn điểm đến</option>
+                                <option key="default-destination" value="">Chọn điểm đến</option>
                                 {airports.map(airport => (
-                                    <option key={airport.id} value={airport.id}>
+                                    <option key={`destination-${airport.id}`} value={airport.id}>
                                         {airport.name} ({airport.code})
                                     </option>
                                 ))}
