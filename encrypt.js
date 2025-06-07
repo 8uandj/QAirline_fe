@@ -6,4 +6,4 @@ async function hashPassword(password) {
   console.log(hashedPassword);
 }
 
-hashPassword('admin123');
+hashPassword('123456');

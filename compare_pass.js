@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 
 // Giả sử đây là hash bạn đã lưu trong DB
-const storedHash = '$2b$10$7gX7GchJDT.BMG/kLvAg9.n2Dn/cU9Mfm/RrnP3ubDGEza4qLf3/S'; // hash của 'admin123'
+const storedHash = '$2b$10$28ua4yKfeqoacMSAPJDaFuF2TE5XfI8IOKDUOnA/k0XEzXpLEPa6C'; // hash của 'admin123'
 
 async function checkPassword(plainTextPassword) {
   const isMatch = await bcrypt.compare(plainTextPassword, storedHash);
