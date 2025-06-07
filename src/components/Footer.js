@@ -16,7 +16,7 @@ function Footer() {
                         </div>
                         <p className="text-gray-400 leading-relaxed">
                             Discover seamless travel with QAirline – your gateway to unforgettable journeys across Vietnam and beyond!
-                        </p>
+                    </p>
                         <div className="flex space-x-4">
                             <a href="https://facebook.com" className="w-10 h-10 rounded-full bg-[rgb(5,150,105)] hover:bg-[rgb(245,158,11)] flex items-center justify-center transition-all duration-300">
                                 <i className="fab fa-facebook-f"></i>
@@ -27,8 +27,8 @@ function Footer() {
                             <a href="https://instagram.com" className="w-10 h-10 rounded-full bg-[rgb(5,150,105)] hover:bg-[rgb(245,158,11)] flex items-center justify-center transition-all duration-300">
                                 <i className="fab fa-instagram"></i>
                             </a>
-                        </div>
-                    </div>
+                </div>
+                </div>
 
                     {/* Quick Links */}
                     <div className="space-y-6">
@@ -53,7 +53,7 @@ function Footer() {
                                         Promotions
                                     </Link>
                                 </li>
-                            </ul>
+                    </ul>
                             <ul className="space-y-3">
                                 <li>
                                     <Link to="/flights" className="text-gray-400 hover:text-[rgb(5,150,105)] transition-colors flex items-center">
@@ -73,15 +73,15 @@ function Footer() {
                                         Contact
                                     </Link>
                                 </li>
-                            </ul>
-                        </div>
+                    </ul>
                     </div>
+                </div>
 
                     {/* Destinations */}
                     <div className="space-y-6">
                         <h3 className="text-lg font-semibold text-[rgb(5,150,105)] border-b border-gray-800 pb-3">Destinations</h3>
                         <div className="grid grid-cols-2 gap-6">
-                            <div>
+                <div>
                                 <h4 className="text-sm font-semibold mb-3 text-gray-400 uppercase tracking-wider">Domestic</h4>
                                 <ul className="space-y-3">
                                     <li>
@@ -102,9 +102,9 @@ function Footer() {
                                             Hanoi - Nha Trang
                                         </Link>
                                     </li>
-                                </ul>
-                            </div>
-                            <div>
+                    </ul>
+                </div>
+                <div>
                                 <h4 className="text-sm font-semibold mb-3 text-gray-400 uppercase tracking-wider">International</h4>
                                 <ul className="space-y-3">
                                     <li>
@@ -119,8 +119,8 @@ function Footer() {
                                             Travel Tips
                                         </Link>
                                     </li>
-                                </ul>
-                            </div>
+                    </ul>
+                </div>
                         </div>
                     </div>
 
@@ -152,7 +152,7 @@ function Footer() {
                                     Terms of Service
                                 </Link>
                             </li>
-                        </ul>
+                    </ul>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@ function Footer() {
                             <h3 className="text-lg font-semibold mb-2 text-[rgb(5,150,105)]">Download Our App</h3>
                             <p className="text-gray-400">Get the best travel experience with our mobile app</p>
                         </div>
-                        <div className="flex space-x-4">
+                    <div className="flex space-x-4">
                             <a href="#" className="bg-[rgb(5,150,105)] hover:bg-[rgb(245,158,11)] px-6 py-3 rounded-lg transition-colors">
                                 <i className="fab fa-apple mr-2"></i>App Store
                             </a>

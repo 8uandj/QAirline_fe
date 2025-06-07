@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5000/api';
+
+// Cấu hình axios mặc định
+axios.defaults.withCredentials = true;
 
 // Hàm tiện ích để lấy header xác thực
 const getAuthHeaders = () => {
@@ -13,9 +16,8 @@ const getAuthHeaders = () => {
     headers['Authorization'] = `Bearer ${token}`;
   }
   if (userId) {
-    headers['x-user-id'] = userId; // Header gây lỗi CORS
+    headers['x-user-id'] = userId;
   }
-  console.log('Auth headers:', headers); // Debug
   return headers;
 };
 
@@ -25,15 +27,15 @@ export const getFlights = () => {
 };
 
 export const searchFlights = (data) => {
- return axios.post(`${API_URL}/flights/search`, data, { headers: getAuthHeaders() });
+  return axios.post(`${API_URL}/flights/search`, data, { headers: getAuthHeaders() });
 };
 
 export const getFlight = (flightId) => {
-    return axios.get(`${API_URL}/flights/${flightId}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+  return axios.get(`${API_URL}/flights/${flightId}`, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 };
 
 export const delayFlight = (id, data) => {
@@ -46,11 +48,11 @@ export const createFlight = (data) => {
 
 // API Vé
 export const bookTicket = (data) => {
-    return axios.post(`${API_URL}/tickets/book`, data, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+  return axios.post(`${API_URL}/tickets/book`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 };
 
 export const bookMultipleTickets = (data) => {
@@ -208,15 +210,11 @@ export const getTicketStats = () => {
 
 // API Điểm đến
 export const getDestinations = () => {
-  // TODO: Backend thiếu endpoint GET /destinations
-  // Comment lại cho đến khi backend được cập nhật
-  // return axios.get(`${API_URL}/destinations`, { headers: getAuthHeaders() });
-  return Promise.reject(new Error('GET /destinations chưa được triển khai trong backend'));
+  return axios.get(`${API_URL}/destinations`, { headers: getAuthHeaders() });
 };
 
 // API Hãng hàng không
 export const getAirlines = () => {
-  // Khớp với GET /airlines
   return axios.get(`${API_URL}/airlines`, { headers: getAuthHeaders() });
 };
 
@@ -238,7 +236,6 @@ export const getAirports = async () => {
   try {
     const response = await axios.get(`${API_URL}/airports`, {
       headers: getAuthHeaders(),
-      // Giữ các header kiểm soát cache cho đồng bộ
       'Cache-Control': 'no-cache',
       Pragma: 'no-cache',
       Expires: '0',
