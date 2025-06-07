@@ -283,31 +283,37 @@ useEffect(() => {
 
     const bookingData = passengers.map((passenger, index) => ({
       flight_id: flightId,
-      customer_id: passenger.customer.id,
+      customer_id: passenger.customer?.id || '',
       ticket_class_id: selectedClass.id,
       cancellation_deadline: cancellationDeadline,
       seat_number: seatIds[index],
-      price: ticketPrice,
+      price: ticketPrice
     }));
+
+    console.log('📊 Payload gửi tới bookMultipleTickets:', { tickets: bookingData, quantity });
 
     if (quantity === 1) {
       console.log('📊 Gửi dữ liệu đặt vé đơn:', bookingData[0]);
       response = await bookTicket(bookingData[0]);
     } else {
-      console.log('📊 Gửi dữ liệu đặt nhiều vé:', bookingData);
-      response = await bookMultipleTickets({
-        tickets: bookingData,
-        quantity,
-      });
+      response = await bookMultipleTickets({ tickets: bookingData, quantity });
     }
 
     console.log('📊 Kết quả đặt vé:', response.data);
-    setTicketCode(response.data.ticket_code || 'TICKET-' + Date.now());
-    localStorage.removeItem('bookingData'); // Xóa dữ liệu tạm sau khi đặt vé thành công
+    const code = quantity === 1
+                 ? response.data.data.standardized_code
+                 : response.data.data.standardized_code;
+    if (!code) {
+      throw new Error('Không nhận được mã vé từ server');
+    }
+    setTicketCode(code);
+    localStorage.removeItem('bookingData');
     setStep(4);
   } catch (err) {
-    console.error('Lỗi đặt vé:', err);
-    const errorMessage = err.response?.data?.error || err.message;
+    console.error('🚨 Lỗi đặt vé:', err);
+    const errorMessage = err.response?.data?.errors
+      ? err.response.data.errors.map(e => e.msg).join('; ')
+      : err.response?.data?.message || err.message;
     setError(`Đặt vé thất bại: ${errorMessage}`);
     console.log('📊 Chi tiết lỗi:', err.response?.data);
   } finally {
@@ -580,7 +586,6 @@ useEffect(() => {
 {/* Bước 3: Xác nhận đặt vé */}
 {step === 3 && (
   <div className="max-w-3xl mx-auto">
-    {console.log('📊 Passengers tại step 3:', passengers)}
     <h2 className="text-2xl font-semibold mb-6 text-green-600 text-center">Xác Nhận Đặt Vé</h2>
     <div className="bg-white p-6 rounded-xl shadow-md border border-green-100 relative">
       <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
@@ -618,19 +623,40 @@ useEffect(() => {
         <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Hành Khách</h3>
         {passengers.map((passenger, index) => (
           <div key={index} className="mb-4 border-b border-green-200 pb-2">
-            <p className="text-sm text-gray-600 font-light">
-              Hành khách {index + 1}: <span className="font-semibold text-green-800">
-                {passenger.customer?.first_name && passenger.customer?.last_name
-                  ? `${passenger.customer.first_name} ${passenger.customer.last_name}`
-                  : passenger.formData?.first_name && passenger.formData?.last_name
-                  ? `${passenger.formData.first_name} ${passenger.formData.last_name}`
-                  : passenger.email || 'Chưa nhập thông tin'}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600 font-light mt-1">Email: <span className="font-semibold text-green-800">{passenger.email || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số ghế: <span className="font-semibold text-green-800">{seatIds[index] || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số điện thoại: <span className="font-semibold text-green-800">{passenger.formData?.phone_number || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số CMND/CCCD: <span className="font-semibold text-green-800">{passenger.formData?.identity_number || 'N/A'}</span></p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 font-light">
+                  Hành khách {index + 1}: <span className="font-semibold text-green-800">
+                    {passenger.customer?.first_name && passenger.customer?.last_name
+                      ? `${passenger.customer.first_name} ${passenger.customer.last_name}`
+                      : passenger.formData?.first_name && passenger.formData?.last_name
+                      ? `${passenger.formData.first_name} ${passenger.formData.last_name}`
+                      : passenger.email || 'Chưa nhập thông tin'}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Email: <span className="font-semibold text-green-800">{passenger.email || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Ngày sinh: <span className="font-semibold text-green-800">
+                    {passenger.formData?.birth_date
+                      ? new Date(passenger.formData.birth_date).toLocaleDateString('vi-VN')
+                      : 'N/A'}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 font-light">
+                  Số điện thoại: <span className="font-semibold text-green-800">{passenger.formData?.phone_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số CMND/CCCD: <span className="font-semibold text-green-800">{passenger.formData?.identity_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số ghế: <span className="font-semibold text-green-800">{seatIds[index] || 'N/A'}</span>
+                </p>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -669,13 +695,18 @@ useEffect(() => {
 {/* Bước 4: Đặt vé thành công */}
 {step === 4 && (
   <div className="max-w-3xl mx-auto">
-    {console.log('📊 Passengers tại step 4:', passengers)}
     <h2 className="text-2xl font-semibold mb-6 text-green-600 text-center">Đặt Vé Thành Công!</h2>
     <div className="bg-white p-6 rounded-xl shadow-md border border-green-100 relative">
       <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
       <div className="flex justify-between items-center mb-4 pt-6">
         <img src="/path/to/logo.png" alt="AirGrok" className="h-8" />
-        <div className="text-sm text-gray-600">Mã vé: {ticketCode}</div>
+        <div className="text-sm text-gray-600">
+          Mã vé: <span className="font-semibold text-green-800">{ticketCode}</span>
+        </div>
+      </div>
+      <div className="bg-green-100 p-4 rounded-lg mb-4 text-center">
+        <p className="text-lg font-semibold text-green-700">Mã vé của bạn: <span className="text-2xl text-green-800">{ticketCode}</span></p>
+        <p className="text-sm text-gray-600 mt-2">Vui lòng lưu mã này để tra cứu vé sau này.</p>
       </div>
       <div className="grid grid-cols-10 gap-4">
         <div className="col-span-7 bg-green-50 p-4 rounded-lg">
@@ -707,19 +738,40 @@ useEffect(() => {
         <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Hành Khách</h3>
         {passengers.map((passenger, index) => (
           <div key={index} className="mb-4 border-b border-green-200 pb-2">
-            <p className="text-sm text-gray-600 font-light">
-              Hành khách {index + 1}: <span className="font-semibold text-green-800">
-                {passenger.customer?.first_name && passenger.customer?.last_name
-                  ? `${passenger.customer.first_name} ${passenger.customer.last_name}`
-                  : passenger.formData?.first_name && passenger.formData?.last_name
-                  ? `${passenger.formData.first_name} ${passenger.formData.last_name}`
-                  : passenger.email || 'Chưa nhập thông tin'}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600 font-light mt-1">Email: <span className="font-semibold text-green-800">{passenger.email || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số ghế: <span className="font-semibold text-green-800">{seatIds[index] || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số điện thoại: <span className="font-semibold text-green-800">{passenger.formData?.phone_number || 'N/A'}</span></p>
-            <p className="text-sm text-gray-600 font-light mt-1">Số CMND/CCCD: <span className="font-semibold text-green-800">{passenger.formData?.identity_number || 'N/A'}</span></p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 font-light">
+                  Hành khách {index + 1}: <span className="font-semibold text-green-800">
+                    {passenger.customer?.first_name && passenger.customer?.last_name
+                      ? `${passenger.customer.first_name} ${passenger.customer.last_name}`
+                      : passenger.formData?.first_name && passenger.formData?.last_name
+                      ? `${passenger.formData.first_name} ${passenger.formData.last_name}`
+                      : passenger.email || 'Chưa nhập thông tin'}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Email: <span className="font-semibold text-green-800">{passenger.email || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Ngày sinh: <span className="font-semibold text-green-800">
+                    {passenger.formData?.birth_date
+                      ? new Date(passenger.formData.birth_date).toLocaleDateString('vi-VN')
+                      : 'N/A'}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 font-light">
+                  Số điện thoại: <span className="font-semibold text-green-800">{passenger.formData?.phone_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số CMND/CCCD: <span className="font-semibold text-green-800">{passenger.formData?.identity_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số ghế: <span className="font-semibold text-green-800">{seatIds[index] || 'N/A'}</span>
+                </p>
+              </div>
+            </div>
           </div>
         ))}
       </div>

@@ -70,79 +70,81 @@ function SeatSelection() {
 }, [flightId, ticketClass, navigate, flight, quantity, state]);
 
   const getCabins = (data) => {
-    const classKey = {
-      economy: 'economy_class',
-      business: 'business_class',
-      first: 'first_class',
-    }[ticketClass];
-    const cabinsData = data[classKey] || [];
-    const cabins = [];
+  const classKey = {
+    economy: 'economy_class',
+    business: 'business_class',
+    first: 'first_class',
+  }[ticketClass];
+  const cabinsData = data[classKey] || [];
+  const cabins = [];
 
-    cabinsData.forEach((cabin, index) => {
-      const seats = Array.isArray(cabin.seats)
-        ? cabin.seats.map((seat) => ({
-            seat_number: typeof seat === 'string' ? seat : seat.seat_number,
-            is_booked: typeof seat === 'string' ? false : seat.is_booked,
-          }))
-        : [];
+  cabinsData.forEach((cabin, index) => {
+    const seats = Array.isArray(cabin.seats)
+      ? cabin.seats.map((seat) => ({
+          seat_number: typeof seat === 'string' ? seat : seat.seat_number,
+          is_booked: typeof seat === 'string' ? false : seat.is_booked || false, // Đảm bảo is_booked tồn tại
+        }))
+      : [];
 
-      let layout;
-      if (ticketClass === 'economy') {
-        const rows = 10; // Hàng A-J
-        const seatsPerRow = 4; // 2 ghế/dãy
-        const seatsPerAisle = 2;
-        layout = Array.from({ length: rows }, (_, rowIndex) => {
-          const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., J
-          return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
-            const seatNum = `${rowLetter}${seatIndex + 1}`;
-            const seat = seats.find((s) => s.seat_number.startsWith(`${cabin.cabin}-${seatNum}`)) || {
-              seat_number: `${cabin.cabin}-${seatNum}`,
-              is_booked: false,
-            };
-            return seat;
-          });
-        });
-      } else if (ticketClass === 'business') {
-        const rows = 5; // Hàng A-E
-        const seatsPerRow = 2; // 1 ghế/dãy
-        layout = Array.from({ length: rows }, (_, rowIndex) => {
-          const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., E
-          return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
-            const seatNum = `${rowLetter}${seatIndex + 1}`;
-            const seat = seats.find((s) => s.seat_number.startsWith(`${cabin.cabin}-${seatNum}`)) || {
-              seat_number: `${cabin.cabin}-${seatNum}`,
-              is_booked: false,
-            };
-            return seat;
-          });
-        });
-      } else if (ticketClass === 'first') {
-        const rows = 5; // Hàng A-E
-        const seatsPerRow = 1; // 1 ghế/dãy
-        layout = Array.from({ length: rows }, (_, rowIndex) => {
-          const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., E
-          return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
-            const seatNum = `${rowLetter}${seatIndex + 1}`;
-            const seat = seats.find((s) => s.seat_number.startsWith(`${cabin.cabin}-${seatNum}`)) || {
-              seat_number: `${cabin.cabin}-${seatNum}`,
-              is_booked: false,
-            };
-            return seat;
-          });
-        });
-      }
+    console.log('📊 Cabin seats:', seats); // Debug
 
-      cabins.push({
-        id: `cabin-${classKey}-${index}`,
-        name: cabin.cabin || `${classTypeNames[ticketClass]} Cabin ${index + 1}`,
-        rows: layout.length,
-        columns: ticketClass === 'first' ? 1 : ticketClass === 'business' ? 2 : 4,
-        seats: layout,
+    let layout;
+    if (ticketClass === 'economy') {
+      const rows = 10; // Hàng A-J
+      const seatsPerRow = 4; // 2 ghế/dãy
+      layout = Array.from({ length: rows }, (_, rowIndex) => {
+        const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., J
+        return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
+          const seatNum = `${rowLetter}${seatIndex + 1}`;
+          const seat = seats.find((s) => s.seat_number === `${cabin.cabin}-${seatNum}`) || {
+            seat_number: `${cabin.cabin}-${seatNum}`,
+            is_booked: false,
+          };
+          return seat;
+        });
       });
-    });
+    } else if (ticketClass === 'business') {
+      const rows = 5; // Hàng A-E
+      const seatsPerRow = 2; // 1 ghế/dãy
+      layout = Array.from({ length: rows }, (_, rowIndex) => {
+        const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., E
+        return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
+          const seatNum = `${rowLetter}${seatIndex + 1}`;
+          const seat = seats.find((s) => s.seat_number === `${cabin.cabin}-${seatNum}`) || {
+            seat_number: `${cabin.cabin}-${seatNum}`,
+            is_booked: false,
+          };
+          return seat;
+        });
+      });
+    } else if (ticketClass === 'first') {
+      const rows = 5; // Hàng A-E
+      const seatsPerRow = 1; // 1 ghế/dãy
+      layout = Array.from({ length: rows }, (_, rowIndex) => {
+        const rowLetter = String.fromCharCode(65 + rowIndex); // A, B, ..., E
+        return Array.from({ length: seatsPerRow }, (_, seatIndex) => {
+          const seatNum = `${rowLetter}${seatIndex + 1}`;
+          const seat = seats.find((s) => s.seat_number === `${cabin.cabin}-${seatNum}`) || {
+            seat_number: `${cabin.cabin}-${seatNum}`,
+            is_booked: false,
+          };
+          return seat;
+        });
+      });
+    }
 
-    return cabins;
-  };
+    cabins.push({
+      id: `cabin-${classKey}-${index}`,
+      name: cabin.cabin || `${classTypeNames[ticketClass]} Cabin ${index + 1}`,
+      rows: layout.length,
+      columns: ticketClass === 'first' ? 1 : ticketClass === 'business' ? 2 : 4,
+      seats: layout,
+    });
+  });
+
+  console.log('📊 Final cabins:', cabins);
+  return cabins;
+};
 
   const handleSeatClick = ({ type, seat, cabinId }) => {
   if (type === 'setActiveCabin') {

@@ -50,9 +50,8 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
             initial="hidden"
             animate="visible"
             transition={{ duration: 0.5 }}
-            className="relative bg-gradient-to-r from-green-600 to-green-400 p-8 rounded-[300px] shadow-2xl border-6 border-gradient-to-r from-green-400 to-teal-400 overflow-x-auto mx-auto min-h-[400px]"
+            className="relative bg-gradient-to-r from-green-600 to-green-400 p-6 rounded-[300px] shadow-2xl border-6 border-gradient-to-r from-green-400 to-teal-400 overflow-x-auto mx-auto min-h-[400px]"
           >
-            {/* Trang trí: Cửa sổ máy bay */}
             <div className="absolute top-4 left-4 flex flex-col space-y-2">
               <div className="w-6 h-4 bg-white-400 rounded-full shadow-inner"></div>
               <div className="w-6 h-4 bg-white-400 rounded-full shadow-inner"></div>
@@ -69,7 +68,6 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
               <div className="w-6 h-4 bg-teal-400 rounded-full shadow-inner"></div>
               <div className="w-6 h-4 bg-teal-400 rounded-full shadow-inner"></div>
             </div>
-            {/* Logo placeholder */}
             <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
               <img src="/path/to/logo.png" alt="QAirline" className="h-6 opacity-50" />
             </div>
@@ -93,7 +91,7 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
                           whileTap={{ scale: 0.9 }}
                           className={`w-14 h-14 flex items-center justify-center rounded-md text-sm font-semibold cursor-pointer transition-colors ${
                             row[0].is_booked
-                              ? 'bg-red-500 text-white cursor-not-allowed'
+                              ? 'bg-red-600 text-white cursor-not-allowed opacity-90' // Ghế đã hết: đỏ đậm
                               : selectedSeats.includes(row[0].seat_number)
                               ? 'bg-green-500 text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
@@ -125,7 +123,7 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
                             whileTap={{ scale: 0.9 }}
                             className={`w-14 h-14 flex items-center justify-center rounded-md text-sm font-semibold cursor-pointer transition-colors ${
                               seat.is_booked
-                                ? 'bg-red-500 text-white cursor-not-allowed'
+                                ? 'bg-red-600 text-white cursor-not-allowed opacity-90' // Ghế đã hết: đỏ đậm
                                 : selectedSeats.includes(seat.seat_number)
                                 ? 'bg-green-500 text-white'
                                 : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
@@ -149,31 +147,26 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
                       </div>
                     ))}
                   </div>
-
-{/* WC - Góc dưới cùng bên phải */}
-<div className="absolute bottom-4 right-8">
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.5, delay: 0.3 }}
-    className="w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-800 text-xs font-semibold"
-  >
-    WC
-  </motion.div>
-</div>
-
-{/* Cửa sang khoang khác - Giữa bên ngoài cùng bên phải */}
-<div className="absolute top-1/2 right-4 transform -translate-y-1/2">
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.5, delay: 0.4 }}
-    className="w-12 h-24 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-800 text-xs font-semibold"
-  >
-    NEXT
-  </motion.div>
-</div>
-
+                  <div className="absolute bottom-4 right-8">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-800 text-xs font-semibold"
+                    >
+                      WC
+                    </motion.div>
+                  </div>
+                  <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="w-12 h-24 bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-800 text-xs font-semibold"
+                    >
+                      NEXT
+                    </motion.div>
+                  </div>
                   <div className="flex flex-row space-x-2">
                     {cabin.seats.map((row, rowIndex) => (
                       <div key={rowIndex} className="flex flex-col space-y-2">
@@ -184,7 +177,7 @@ function SeatMap({ cabins, activeCabin, selectedSeats, onSeatClick, ticketClass,
                             whileTap={{ scale: 0.9 }}
                             className={`w-14 h-14 flex items-center justify-center rounded-md text-sm font-semibold cursor-pointer transition-colors ${
                               seat.is_booked
-                                ? 'bg-red-500 text-white cursor-not-allowed'
+                                ? 'bg-red-600 text-white cursor-not-allowed opacity-90' // Ghế đã hết: đỏ đậm
                                 : selectedSeats.includes(seat.seat_number)
                                 ? 'bg-green-500 text-white'
                                 : 'bg-gray-300 text-gray-700 hover:bg-gray-400'

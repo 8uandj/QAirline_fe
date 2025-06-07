@@ -155,7 +155,12 @@ function Tickets() {
             <input
               type="text"
               placeholder="Nhập mã vé"
-              {...register('code', { required: 'Mã vé là bắt buộc' })}
+              {...register('code', { required: 'Mã vé là bắt buộc', pattern: {
+      value: /^TICKET-[A-Z0-9]{6}(-\d)?$/,
+      message: 'Mã vé phải có định dạng TICKET-XXXXXX hoặc TICKET-XXXXXX-N'
+    }}
+                
+              )}
               className="p-3 border border-green-200 rounded-lg w-full focus:ring-2 focus:ring-green-500 transition"
             />
             {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>}
@@ -170,21 +175,19 @@ function Tickets() {
             Tra cứu
           </motion.button>
         </form>
-        {trackedTicket && (
+
+{trackedTicket && (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
     className="mt-6 relative"
   >
-    {/* Viền cắt đầu vé */}
     <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
-    {/* Logo giả */}
     <div className="flex justify-between items-center mb-4 pt-6">
-      <img src="/path/to/logo.png" alt="AirGrok" className="h-8" />
-      <div className="text-sm text-gray-600">Mã vé: {trackedTicket.ticket_code}</div>
+      <img src="/path/to/logo.png" alt="QAirline" className="h-8" />
+      <div className="text-sm text-gray-600">Mã vé: {trackedTicket.standardized_code}</div>
     </div>
-    {/* Thông tin vé */}
     <div className="grid grid-cols-10 gap-4">
       <div className="col-span-7 bg-green-50 p-4 rounded-lg">
         <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Chuyến Bay</h3>
@@ -216,21 +219,41 @@ function Tickets() {
         <p className="text-sm text-gray-600 font-light mt-1">Hạn hủy vé: <span className="font-semibold text-green-800">{trackedTicket.cancellation_deadline ? new Date(trackedTicket.cancellation_deadline).toLocaleString() : 'N/A'}</span></p>
       </div>
     </div>
-    {/* Box thông tin người đặt vé */}
     <div className="mt-4 bg-green-50 p-4 rounded-lg">
       <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Người Đặt Vé</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-sm text-gray-600 font-light">Họ tên: <span className="font-semibold text-green-800">{trackedTicket.customer?.first_name} {trackedTicket.customer?.last_name}</span></p>
-          <p className="text-sm text-gray-600 font-light mt-2">Email: <span className="font-semibold text-green-800">{trackedTicket.customer?.email || 'N/A'}</span></p>
+          <p className="text-sm text-gray-600 font-light">
+            Họ tên: <span className="font-semibold text-green-800">
+              {trackedTicket.first_name && trackedTicket.last_name
+                ? `${trackedTicket.first_name} ${trackedTicket.last_name}`
+                : 'N/A'}
+            </span>
+          </p>
+          <p className="text-sm text-gray-600 font-light mt-1">
+            Email: <span className="font-semibold text-green-800">{trackedTicket.email || 'N/A'}</span>
+          </p>
+          <p className="text-sm text-gray-600 font-light mt-1">
+            Ngày sinh: <span className="font-semibold text-green-800">
+              {trackedTicket.birth_date
+                ? new Date(trackedTicket.birth_date).toLocaleDateString('vi-VN')
+                : 'N/A'}
+            </span>
+          </p>
         </div>
         <div>
-          <p className="text-sm text-gray-600 font-light">Số điện thoại: <span className="font-semibold text-green-800">{trackedTicket.customer?.phone_number || 'N/A'}</span></p>
-          <p className="text-sm text-gray-600 font-light mt-2">Số CMND/CCCD: <span className="font-semibold text-green-800">{trackedTicket.customer?.identity_number || 'N/A'}</span></p>
+          <p className="text-sm text-gray-600 font-light">
+            Số điện thoại: <span className="font-semibold text-green-800">{trackedTicket.phone_number || 'N/A'}</span>
+          </p>
+          <p className="text-sm text-gray-600 font-light mt-1">
+            Số CMND/CCCD: <span className="font-semibold text-green-800">{trackedTicket.identity_number || 'N/A'}</span>
+          </p>
+          <p className="text-sm text-gray-600 font-light mt-1">
+            Số ghế: <span className="font-semibold text-green-800">{trackedTicket.seat_number || 'N/A'}</span>
+          </p>
         </div>
       </div>
     </div>
-           {/* Mã vạch giả */}
     <div className="mt-4 flex justify-center">
       <div className="h-8 w-48 bg-gray-200 flex">
         {[...Array(20)].map((_, i) => (
@@ -238,9 +261,7 @@ function Tickets() {
         ))}
       </div>
     </div>
-    {/* Viền cắt cuối vé */}
     <div className="absolute bottom-0 left-0 right-0 h-4 border-t-2 border-dashed border-green-200"></div>
-    {/* Nút hủy vé */}
     {trackedTicket.ticket_status !== 'Cancelled' && (
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -305,14 +326,11 @@ function Tickets() {
           transition={{ duration: 0.5, delay: index * 0.1 }}
           className="mb-8 bg-white p-6 rounded-xl shadow-md border border-green-100 relative"
         >
-          {/* Viền cắt đầu vé */}
           <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
-          {/* Logo giả */}
           <div className="flex justify-between items-center mb-4 pt-6">
-            <img src="/path/to/logo.png" alt="AirGrok" className="h-8" />
-            <div className="text-sm text-gray-600">Mã vé: {item.ticket.ticket_code}</div>
+            <img src="/path/to/logo.png" alt="QAirline" className="h-8" />
+            <div className="text-sm text-gray-600">Mã vé: {item.ticket.standardized_code || item.ticket.ticket_code}</div>
           </div>
-          {/* Thông tin vé */}
           <div className="grid grid-cols-10 gap-4">
             <div className="col-span-7 bg-green-50 p-4 rounded-lg">
               <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Chuyến Bay</h3>
@@ -344,21 +362,41 @@ function Tickets() {
               <p className="text-sm text-gray-600 font-light mt-1">Hạn hủy vé: <span className="font-semibold text-green-800">{item.ticket.cancellation_deadline ? new Date(item.ticket.cancellation_deadline).toLocaleString() : 'N/A'}</span></p>
             </div>
           </div>
-          {/* Box thông tin người đặt vé */}
           <div className="mt-4 bg-green-50 p-4 rounded-lg">
             <h3 className="text-xl font-bold text-green-700 mb-3 bg-gradient-to-r from-green-100 to-green-50 px-2 py-1 rounded">Thông Tin Người Đặt Vé</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600 font-light">Họ tên: <span className="font-semibold text-green-800">{item.customer?.first_name} {item.customer?.last_name}</span></p>
-                <p className="text-sm text-gray-600 font-light mt-2">Email: <span className="font-semibold text-green-800">{item.customer?.email || 'N/A'}</span></p>
+                <p className="text-sm text-gray-600 font-light">
+                  Họ tên: <span className="font-semibold text-green-800">
+                    {item.customer?.first_name && item.customer?.last_name
+                      ? `${item.customer.first_name} ${item.customer.last_name}`
+                      : 'N/A'}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Email: <span className="font-semibold text-green-800">{item.customer?.email || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Ngày sinh: <span className="font-semibold text-green-800">
+                    {item.customer?.birth_date
+                      ? new Date(item.customer.birth_date).toLocaleDateString('vi-VN')
+                      : 'N/A'}
+                  </span>
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 font-light">Số điện thoại: <span className="font-semibold text-green-800">{item.customer?.phone_number || 'N/A'}</span></p>
-                <p className="text-sm text-gray-600 font-light mt-2">Số CMND/CCCD: <span className="font-semibold text-green-800">{item.customer?.identity_number || 'N/A'}</span></p>
+                <p className="text-sm text-gray-600 font-light">
+                  Số điện thoại: <span className="font-semibold text-green-800">{item.customer?.phone_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số CMND/CCCD: <span className="font-semibold text-green-800">{item.customer?.identity_number || 'N/A'}</span>
+                </p>
+                <p className="text-sm text-gray-600 font-light mt-1">
+                  Số ghế: <span className="font-semibold text-green-800">{item.ticket.seat_number || 'N/A'}</span>
+                </p>
               </div>
             </div>
           </div>
-          {/* Mã vạch giả */}
           <div className="mt-4 flex justify-center">
             <div className="h-8 w-48 bg-gray-200 flex">
               {[...Array(20)].map((_, i) => (
@@ -366,9 +404,7 @@ function Tickets() {
               ))}
             </div>
           </div>
-          {/* Viền cắt cuối vé */}
           <div className="absolute bottom-0 left-0 right-0 h-4 border-t-2 border-dashed border-green-200"></div>
-          {/* Nút hủy vé */}
           {item.ticket.ticket_status !== 'Cancelled' && (
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -382,9 +418,9 @@ function Tickets() {
           )}
         </motion.div>
       ))
-          ) : (
-            <div className="text-center p-4 text-gray-600 bg-white rounded-xl shadow-md border border-green-100">
-              Bạn chưa có vé nào.
+    ) : (
+      <div className="text-center p-4 text-gray-600 bg-white rounded-xl shadow-md border border-green-100">
+        Bạn chưa có vé nào.
             </div>
           )}
         </div>
