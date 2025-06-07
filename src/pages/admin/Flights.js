@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getFlights, createFlight, delayFlight, getAircrafts, getAirlines, getRoutes } from '../../services/api';
 import { motion } from 'framer-motion';
 
 function AdminFlights() {
+  const navigate = useNavigate();
   const [flights, setFlights] = useState([]);
   const [aircrafts, setAircrafts] = useState([]);
   const [airlines, setAirlines] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState(null);
   const [form, setForm] = useState({
     airline_id: '',
     route_id: '',
@@ -17,8 +20,8 @@ function AdminFlights() {
     departure_time: '',
     arrival_time: '',
     base_economy_class_price: '',
-    base_business_class_price: '', // Thêm trường
-    base_first_class_price: '', // Thêm trường
+    base_business_class_price: '',
+    base_first_class_price: '',
     flight_status: 'Scheduled',
   });
   const [delayForm, setDelayForm] = useState({ flightId: '', newDeparture: '', newArrival: '' });
@@ -29,8 +32,9 @@ function AdminFlights() {
     const fetchFlights = async () => {
       try {
         const flightsRes = await getFlights();
-        console.log('📊 Dữ liệu chuyến bay:', flightsRes);
-        setFlights(Array.isArray(flightsRes.data?.data) ? flightsRes.data.data : []);
+        console.log('📊 Flight response:', flightsRes.data);
+        console.log('📊 Dữ liệu chuyến bay:', flightsRes.data.data);
+        setFlights(Array.isArray(flightsRes.data.data) ? flightsRes.data.data : []);
       } catch (err) {
         console.log('❌ Lỗi khi lấy danh sách chuyến bay:', err);
         setError('Không thể tải danh sách chuyến bay: ' + err.message);
@@ -40,7 +44,7 @@ function AdminFlights() {
     const fetchAircrafts = async () => {
       try {
         const aircraftsRes = await getAircrafts();
-        console.log('📊 Dữ liệu tàu bay:', aircraftsRes);
+        console.log('📊 Dữ liệu tàu bay:', aircraftsRes.data);
         setAircrafts(Array.isArray(aircraftsRes.data?.data) ? aircraftsRes.data.data : []);
       } catch (err) {
         console.log('❌ Lỗi khi lấy danh sách tàu bay:', err);
@@ -51,7 +55,7 @@ function AdminFlights() {
     const fetchAirlines = async () => {
       try {
         const airlinesRes = await getAirlines();
-        console.log('📊 Dữ liệu hãng hàng không:', airlinesRes);
+        console.log('📊 Dữ liệu hãng hàng không:', airlinesRes.data);
         setAirlines(Array.isArray(airlinesRes.data?.data) ? airlinesRes.data.data : []);
       } catch (err) {
         console.log('❌ Lỗi khi lấy danh sách hãng hàng không:', err);
@@ -62,7 +66,7 @@ function AdminFlights() {
     const fetchRoutes = async () => {
       try {
         const routesRes = await getRoutes();
-        console.log('📊 Dữ liệu tuyến bay:', routesRes);
+        console.log('📊 Dữ liệu tuyến bay:', routesRes.data);
         setRoutes(Array.isArray(routesRes.data?.data) ? routesRes.data.data : []);
       } catch (err) {
         console.log('❌ Lỗi khi lấy danh sách tuyến bay:', err);
@@ -86,21 +90,17 @@ function AdminFlights() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Chuyển đổi định dạng departure_time và arrival_time sang ISO 8601
       const departureTimeISO = new Date(form.departure_time).toISOString();
       const arrivalTimeISO = new Date(form.arrival_time).toISOString();
 
-      // Kiểm tra departure_time < arrival_time
       if (new Date(departureTimeISO) >= new Date(arrivalTimeISO)) {
         throw new Error('Giờ khởi hành phải nhỏ hơn giờ đến.');
       }
 
-      // Ép kiểu các giá trị giá vé sang số
-      const baseEconomyPrice = parseFloat(form.base_economy_class_price);
-      const baseBusinessPrice = parseFloat(form.base_business_class_price) || 0; // Mặc định 0 nếu không nhập
-      const baseFirstClassPrice = parseFloat(form.base_first_class_price) || 0; // Mặc định 0 nếu không nhập
+      const baseEconomyPrice = parseFloat(form.base_economy_class_price.replace(/[^0-9]/g, '')) || 0;
+      const baseBusinessPrice = parseFloat(form.base_business_class_price.replace(/[^0-9]/g, '')) || 0;
+      const baseFirstClassPrice = parseFloat(form.base_first_class_price.replace(/[^0-9]/g, '')) || 0;
 
-      // Kiểm tra giá trị hợp lệ
       if (isNaN(baseEconomyPrice)) {
         throw new Error('Giá vé phổ thông phải là một số hợp lệ.');
       }
@@ -111,7 +111,6 @@ function AdminFlights() {
         throw new Error('Giá vé hạng nhất phải là một số hợp lệ.');
       }
 
-      // Tạo dữ liệu gửi lên backend
       const flightData = {
         airline_id: form.airline_id,
         route_id: form.route_id,
@@ -128,7 +127,10 @@ function AdminFlights() {
       console.log('📊 Dữ liệu gửi lên backend:', flightData);
 
       const newFlight = await createFlight(flightData);
-      setFlights([...flights, newFlight.data]);
+      console.log('📊 Chuyến bay mới:', newFlight.data);
+      const flightsRes = await getFlights();
+      console.log('📊 Dữ liệu chuyến bay sau refetch:', flightsRes.data.data);
+      setFlights(Array.isArray(flightsRes.data.data) ? flightsRes.data.data : []);
       setForm({
         airline_id: '',
         route_id: '',
@@ -141,6 +143,7 @@ function AdminFlights() {
         base_first_class_price: '',
         flight_status: 'Scheduled',
       });
+      setMode(null);
       alert('Thêm chuyến bay thành công!');
     } catch (err) {
       console.log('❌ Lỗi khi tạo chuyến bay:', err);
@@ -173,234 +176,333 @@ function AdminFlights() {
     }
   };
 
-  if (loading) return <div className="text-center p-4">Đang tải...</div>;
+  const handlePriceChange = (e, field) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    const formattedValue = value ? parseInt(value).toLocaleString('vi-VN') : '';
+    setForm({ ...form, [field]: formattedValue });
+  };
+
+  if (loading) return <div className="text-center p-6 text-gray-600">Đang tải...</div>;
+
+  console.log('📊 Flights state:', flights);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="container mx-auto p-4"
+      className="container mx-auto p-6 bg-green-50 min-h-screen"
     >
-      <h1 className="text-3xl font-bold mb-6 text-blue-600">Quản lý chuyến bay</h1>
+      <h1 className="text-4xl font-bold mb-8 text-green-600 text-center">Quản lý Chuyến Bay</h1>
       {error && (
-        <div className="text-center p-4 text-red-500">
+        <div className="text-center p-4 text-red-600 bg-red-100 rounded-lg mb-6 shadow-md">
           {error}
+          <p className="text-gray-600 mt-2">Vui lòng thử lại hoặc liên hệ quản trị viên.</p>
         </div>
       )}
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Thêm chuyến bay mới</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">Hãng Hàng Không</label>
-            <select
-              name="airline_id"
-              value={form.airline_id}
-              onChange={(e) => setForm({ ...form, airline_id: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            >
-              <option value="">Chọn hãng hàng không</option>
-              {airlines.map(airline => (
-                <option key={airline.id} value={airline.id}>
-                  {airline.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Tuyến Bay</label>
-            <select
-              name="route_id"
-              value={form.route_id}
-              onChange={(e) => setForm({ ...form, route_id: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            >
-              <option value="">Chọn tuyến bay</option>
-              {routes.map(route => (
-                <option key={route.id} value={route.id}>
-                  {route.departure_airport_name} ({route.departure_airport_code}) → {route.arrival_airport_name} ({route.arrival_airport_code})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Số Hiệu Chuyến Bay</label>
-            <input
-              type="text"
-              name="flight_number"
-              value={form.flight_number}
-              onChange={(e) => setForm({ ...form, flight_number: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Tàu Bay</label>
-            <select
-              name="aircraft_id"
-              value={form.aircraft_id}
-              onChange={(e) => setForm({ ...form, aircraft_id: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            >
-              <option value="">Chọn tàu bay</option>
-              {aircrafts.map(aircraft => (
-                <option key={aircraft.id} value={aircraft.id}>
-                  {aircraft.aircraft_code} ({aircraft.manufacturer})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giờ Khởi Hành</label>
-            <input
-              type="datetime-local"
-              name="departure_time"
-              value={form.departure_time}
-              onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giờ Đến</label>
-            <input
-              type="datetime-local"
-              name="arrival_time"
-              value={form.arrival_time}
-              onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giá Vé Phổ Thông (VND)</label>
-            <input
-              type="number"
-              name="base_economy_class_price"
-              value={form.base_economy_class_price}
-              onChange={(e) => setForm({ ...form, base_economy_class_price: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giá Vé Thương Gia (VND)</label>
-            <input
-              type="number"
-              name="base_business_class_price"
-              value={form.base_business_class_price}
-              onChange={(e) => setForm({ ...form, base_business_class_price: e.target.value })}
-              className="p-2 border rounded w-full"
-              placeholder="Nhập giá vé thương gia (mặc định 0 nếu bỏ trống)"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giá Vé Hạng Nhất (VND)</label>
-            <input
-              type="number"
-              name="base_first_class_price"
-              value={form.base_first_class_price}
-              onChange={(e) => setForm({ ...form, base_first_class_price: e.target.value })}
-              className="p-2 border rounded w-full"
-              placeholder="Nhập giá vé hạng nhất (mặc định 0 nếu bỏ trống)"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Trạng Thái Chuyến Bay</label>
-            <select
-              name="flight_status"
-              value={form.flight_status}
-              onChange={(e) => setForm({ ...form, flight_status: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            >
-              <option value="Scheduled">Scheduled</option>
-              <option value="Departed">Departed</option>
-              <option value="Arrived">Arrived</option>
-              <option value="Cancelled">Cancelled</option>
-              <option value="Delayed">Delayed</option>
-            </select>
-          </div>
+      {!mode && (
+        <div className="flex justify-center space-x-4 mb-8">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition w-full"
+            onClick={() => setMode('existing')}
+            className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition font-semibold shadow-md"
           >
-            Thêm Chuyến Bay
+            Existing Route
           </motion.button>
-        </form>
-      </div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Cập nhật Giờ Khởi Hành</h2>
-        <form onSubmit={handleDelaySubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">Chọn Chuyến Bay</label>
-            <select
-              value={delayForm.flightId}
-              onChange={(e) => setDelayForm({ ...delayForm, flightId: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            >
-              <option value="">Chọn chuyến bay</option>
-              {flights.map(flight => (
-                <option key={flight.id} value={flight.id}>
-                  {flight.flight_number}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giờ Khởi Hành Mới</label>
-            <input
-              type="datetime-local"
-              value={delayForm.newDeparture}
-              onChange={(e) => setDelayForm({ ...delayForm, newDeparture: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Giờ Đến Mới</label>
-            <input
-              type="datetime-local"
-              value={delayForm.newArrival}
-              onChange={(e) => setDelayForm({ ...delayForm, newArrival: e.target.value })}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition w-full"
+            onClick={() => navigate('/admin/create-route')}
+            className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition font-semibold shadow-md"
           >
-            Cập nhật Giờ Khởi Hành
+            Create New Route
           </motion.button>
-        </form>
+        </div>
+      )}
+      {mode === 'existing' && (
+        <>
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-green-600">Thêm Chuyến Bay Mới</h2>
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md border border-green-100 space-y-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Hãng Hàng Không</label>
+                <select
+                  name="airline_id"
+                  value={form.airline_id}
+                  onChange={(e) => setForm({ ...form, airline_id: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                >
+                  <option value="">Chọn hãng hàng không</option>
+                  {airlines.map(airline => (
+                    <option key={airline.id} value={airline.id}>
+                      {airline.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Tuyến Bay</label>
+                <select
+                  name="route_id"
+                  value={form.route_id}
+                  onChange={(e) => setForm({ ...form, route_id: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                >
+                  <option value="">Chọn tuyến bay</option>
+                  {routes.map(route => (
+                    <option key={route.id} value={route.id}>
+                      {route.departure_airport_name} ({route.departure_airport_code}) → {route.arrival_airport_name} ({route.arrival_airport_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Số Hiệu Chuyến Bay</label>
+                <input
+                  type="text"
+                  name="flight_number"
+                  value={form.flight_number}
+                  onChange={(e) => setForm({ ...form, flight_number: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Tàu Bay</label>
+                <select
+                  name="aircraft_id"
+                  value={form.aircraft_id}
+                  onChange={(e) => setForm({ ...form, aircraft_id: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                >
+                  <option value="">Chọn tàu bay</option>
+                  {aircrafts.map(aircraft => (
+                    <option key={aircraft.id} value={aircraft.id}>
+                      {aircraft.aircraft_code} ({aircraft.manufacturer})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giờ Khởi Hành</label>
+                <input
+                  type="datetime-local"
+                  name="departure_time"
+                  value={form.departure_time}
+                  onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giờ Đến</label>
+                <input
+                  type="datetime-local"
+                  name="arrival_time"
+                  value={form.arrival_time}
+                  onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giá Vé Phổ Thông (VND)</label>
+                <input
+                  type="text"
+                  name="base_economy_class_price"
+                  value={form.base_economy_class_price}
+                  onChange={(e) => handlePriceChange(e, 'base_economy_class_price')}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                  placeholder="Nhập giá vé phổ thông"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giá Vé Thương Gia (VND)</label>
+                <input
+                  type="text"
+                  name="base_business_class_price"
+                  value={form.base_business_class_price}
+                  onChange={(e) => handlePriceChange(e, 'base_business_class_price')}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  placeholder="Nhập giá vé thương gia (mặc định 0 nếu bỏ trống)"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giá Vé Hạng Nhất (VND)</label>
+                <input
+                  type="text"
+                  name="base_first_class_price"
+                  value={form.base_first_class_price}
+                  onChange={(e) => handlePriceChange(e, 'base_first_class_price')}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  placeholder="Nhập giá vé hạng nhất (mặc định 0 nếu bỏ trống)"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Trạng Thái Chuyến Bay</label>
+                <select
+                  name="flight_status"
+                  value={form.flight_status}
+                  onChange={(e) => setForm({ ...form, flight_status: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Departed">Departed</option>
+                  <option value="Arrived">Arrived</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Delayed">Delayed</option>
+                </select>
+              </div>
+              <div className="flex space-x-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => setMode(null)}
+                  className="bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 transition font-semibold shadow-md w-full"
+                >
+                  Quay lại
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="submit"
+                  className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition font-semibold shadow-md w-full"
+                >
+                  Thêm Chuyến Bay
+                </motion.button>
+              </div>
+            </form>
+          </div>
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-green-600">Cập nhật Giờ Khởi Hành</h2>
+            <form onSubmit={handleDelaySubmit} className="bg-white p-6 rounded-xl shadow-md border border-green-100 space-y-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Chọn Chuyến Bay</label>
+                <select
+                  value={delayForm.flightId}
+                  onChange={(e) => setDelayForm({ ...delayForm, flightId: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                >
+                  <option value="">Chọn chuyến bay</option>
+                  {flights.map(flight => (
+                    <option key={flight.id} value={flight.id}>
+                      {flight.flight_number}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giờ Khởi Hành Mới</label>
+                <input
+                  type="datetime-local"
+                  value={delayForm.newDeparture}
+                  onChange={(e) => setDelayForm({ ...delayForm, newDeparture: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Giờ Đến Mới</label>
+                <input
+                  type="datetime-local"
+                  value={delayForm.newArrival}
+                  onChange={(e) => setDelayForm({ ...delayForm, newArrival: e.target.value })}
+                  className="p-3 border border-green-200 rounded-lg w-full bg-gray-50 focus:ring-2 focus:ring-green-500 transition"
+                  required
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="submit"
+                className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition font-semibold shadow-md w-full"
+              >
+                Cập nhật Giờ Khởi Hành
+              </motion.button>
+            </form>
+          </div>
+        </>
+      )}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-green-600">Danh sách Chuyến Bay</h2>
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="w-full bg-white rounded-lg">
+            <thead>
+              <tr className="bg-green-100 text-green-800">
+                <th className="px-6 py-4 text-left font-semibold">Số Hiệu</th>
+                <th className="px-6 py-4 text-left font-semibold">Tàu Bay</th>
+                <th className="px-6 py-4 text-left font-semibold">Khởi Hành</th>
+                <th className="px-6 py-4 text-left font-semibold">Đến</th>
+                <th className="px-6 py-4 text-left font-semibold">Giá Phổ Thông</th>
+                <th className="px-6 py-4 text-left font-semibold">Giá Thương Gia</th>
+                <th className="px-6 py-4 text-left font-semibold">Giá Hạng Nhất</th>
+              </tr>
+            </thead>
+            <tbody>
+              {flights.length > 0 ? (
+                flights.map((flight, index) => (
+                  <tr
+                    key={flight.id}
+                    className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-50 transition-colors duration-200`}
+                  >
+                    <td className="px-6 py-4">{flight.flight_number}</td>
+                    <td className="px-6 py-4">{flight.aircraft_type}</td>
+                    <td className="px-6 py-4">{flight.departure_city_name || 'N/A'}</td>
+                    <td className="px-6 py-4">{flight.arrival_city_name || 'N/A'}</td>
+                    <td className="px-6 py-4">{flight.base_economy_class_price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
+                    <td className="px-6 py-4">{flight.base_business_class_price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) || '0 ₫'}</td>
+                    <td className="px-6 py-4">{flight.base_first_class_price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) || '0 ₫'}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="px-6 py-4 text-center text-gray-600">Không có chuyến bay nào.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div>
-        <h2 className="text-2xl font-semibold mb-4">Danh sách Chuyến Bay</h2>
-        <div className="space-y-4">
-          {flights.length > 0 ? (
-            flights.map(flight => (
-              <div key={flight.id} className="bg-white shadow-md rounded-lg p-4">
-                <h3 className="text-xl font-semibold">{flight.flight_number}</h3>
-                <p>Tàu Bay: {flight.aircraft_id}</p>
-                <p>Giờ Khởi Hành: {new Date(flight.departure_time).toLocaleString()}</p>
-                <p>Giờ Đến: {new Date(flight.arrival_time).toLocaleString()}</p>
-                <p>Giá Vé Phổ Thông: {flight.base_economy_class_price?.toLocaleString()} VND</p>
-                <p>Giá Vé Thương Gia: {flight.base_business_class_price?.toLocaleString() || 0} VND</p>
-                <p>Giá Vé Hạng Nhất: {flight.base_first_class_price?.toLocaleString() || 0} VND</p>
-              </div>
-            ))
-          ) : (
-            <p>Không có chuyến bay nào.</p>
-          )}
+        <h2 className="text-2xl font-semibold mb-4 text-green-600">Danh sách Tuyến Bay</h2>
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="w-full bg-white rounded-lg">
+            <thead>
+              <tr className="bg-green-100 text-green-800">
+                <th className="px-6 py-4 text-left font-semibold">Sân Bay Đi</th>
+                <th className="px-6 py-4 text-left font-semibold">Sân Bay Đến</th>
+                <th className="px-6 py-4 text-left font-semibold">Khoảng Cách (km)</th>
+                <th className="px-6 py-4 text-left font-semibold">Giá Cơ Bản (VND)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {routes.length > 0 ? (
+                routes.map((route, index) => (
+                  <tr
+                    key={route.id}
+                    className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-50 transition-colors duration-200`}
+                  >
+                    <td className="px-6 py-4">{route.departure_airport_name} ({route.departure_airport_code})</td>
+                    <td className="px-6 py-4">{route.arrival_airport_name} ({route.arrival_airport_code})</td>
+                    <td className="px-6 py-4">{route.distance?.toLocaleString('vi-VN')}</td>
+                    <td className="px-6 py-4">{route.base_price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-6 py-4 text-center text-gray-600">Không có tuyến bay nào.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </motion.div>

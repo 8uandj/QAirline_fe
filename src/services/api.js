@@ -216,7 +216,6 @@ export const getDestinations = () => {
 
 // API Hãng hàng không
 export const getAirlines = () => {
-  // Khớp với GET /airlines
   return axios.get(`${API_URL}/airlines`, { headers: getAuthHeaders() });
 };
 
@@ -247,4 +246,18 @@ export const getAirports = async () => {
   } catch (error) {
     throw new Error(`Lỗi HTTP! Trạng thái: ${error.response?.status || error.message}`);
   }
+};
+
+// Seat APIs
+export const getSeatMap = (flightId) => {
+  return axios.get(`${API_URL}/seats/${flightId}`, { headers: getAuthHeaders() });
+};
+
+export const validateSeat = (data) => {
+  return axios.post(`${API_URL}/seats/validate`, data, { headers: getAuthHeaders() });
+};
+
+//City API
+export const getCities = () => {
+  return axios.get(`${API_URL}/cities?limit=100`, { headers: getAuthHeaders() });
 };
