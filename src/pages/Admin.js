@@ -23,7 +23,7 @@ function Admin() {
         ])
             .then(([flightsRes, statsRes]) => {
                 setFlights(flightsRes.data);
-                setStats(statsRes.data);
+                setStats(statsRes); 
             })
             .catch(err => setError('Không thể tải dữ liệu: ' + err.message))
             .finally(() => setLoading(false));
@@ -50,8 +50,10 @@ function Admin() {
             {stats && (
                 <div className="mb-6 p-4 bg-white shadow-md rounded-lg">
                     <h2 className="text-xl font-semibold mb-2">Thống kê</h2>
-                    <p>Tổng số vé đã đặt: {stats.totalTickets}</p>
-                    <p>Tổng doanh thu: {stats.totalRevenue} VND</p>
+                    <p>Tổng số vé đã đặt: {stats.total_reservations}</p>
+                    <p>Tổng doanh thu: {stats.total_paid_revenue} VND</p> 
+                    <p>Tổng số khách hàng: {stats.total_passengers} VND</p> 
+                    <p>Số thông báo: {stats.total_announcements} VND</p> 
                 </div>
             )}
             <div className="space-y-4">

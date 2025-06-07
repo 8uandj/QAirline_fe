@@ -205,7 +205,7 @@ export const getBookingTrends = () => {
 };
 
 export const getTicketStats = () => {
-  return axios.get(`${API_URL}/tickets/stats`, { headers: getAuthHeaders(true) });
+  return axios.get(`${API_URL}/stats`, { headers: getAuthHeaders(true) });
 };
 
 // API Điểm đến
