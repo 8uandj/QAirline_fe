@@ -145,6 +145,15 @@ export const deleteAnnouncement = (id) => {
   return axios.delete(`${API_URL}/announcements/${id}`, { headers: getAuthHeaders() });
 };
 
+export const getAnnouncementsByType = (type) => {
+  return axios.get(`${API_URL}/announcements`, {
+    params: { type },
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+};
+
 // API Máy bay
 export const getAircrafts = () => {
   return axios.get(`${API_URL}/aircrafts`, { headers: getAuthHeaders() });
