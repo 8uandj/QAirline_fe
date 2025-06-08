@@ -83,6 +83,32 @@ export const getTickets = () => {
   return axios.get(`${API_URL}/tickets/email/${email}`, { headers: getAuthHeaders(true) });
 };
 
+// API Vé (admin) – đã sửa
+export const getAdminTickets = async (filters = {}) => {
+  // ⚙️ Chuẩn hoá ngày: dd/mm/yyyy → yyyy-mm-dd
+  const normalized = { ...filters };
+  ['from_date', 'to_date'].forEach(key => {
+    if (normalized[key] && normalized[key].includes('/')) {
+      const [day, month, year] = normalized[key].split('/');
+      normalized[key] = `${year}-${month}-${day}`;   // ISO 8601
+    }
+  });
+
+  try {
+    const params = new URLSearchParams(normalized).toString();
+    const response = await axios.get(
+      `${API_URL}/admin/tickets?${params}`,     // dùng API_URL
+      { headers: getAuthHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('❌ Lỗi fetch vé admin:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+
 // API Khách hàng
 export const createCustomer = (data) => {
   return axios.post(`${API_URL}/customer`, data, { headers: getAuthHeaders(true) });
