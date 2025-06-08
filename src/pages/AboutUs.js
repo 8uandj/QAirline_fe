@@ -5,19 +5,19 @@ function AboutUs() {
         {
             name: "Hoàng Duy Hưng",
             position: "CEO",
-            image: "https://images.unsplash.com/photo-1560250097-0b93528c311a",
+            image: "https://th.bing.com/th/id/R.8a174aacc1de8edaba022ace0c9be1f4?rik=bZOUv3khpYdrsA&riu=http%3a%2f%2fwww.yourtechstory.com%2fwp-content%2fuploads%2f2018%2f09%2fmark-zuckerberg.jpg&ehk=mSmTI2Xgbk9uJXACM6oZ7qLV%2bzBTWjq04%2fnAzlQ1ngU%3d&risl=&pid=ImgRaw&r=0&sres=1&sresct=1",
             description: "Với hơn 15 năm kinh nghiệm trong ngành hàng không."
         },
         {
             name: "Nguyễn Trung Hiếu",
             position: "Giám đốc Điều hành",
-            image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
+            image: "https://th.bing.com/th/id/OIP.n5kE1a7b6H0GMnuLhqusNgHaEK?rs=1&pid=ImgDetMain",
             description: "Chuyên gia về quản lý và phát triển dịch vụ khách hàng."
         },
         {
             name: "Nguyễn Hoàng Phúc",
             position: "Giám đốc Kỹ thuật",
-            image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+            image: "https://photos5.appleinsider.com/gallery/44077-85695-129-hero-xl.jpg",
             description: "Phụ trách đội ngũ kỹ thuật và bảo dưỡng máy bay."
         }
     ];

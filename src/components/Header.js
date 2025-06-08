@@ -7,7 +7,7 @@ function Header({ isAdmin = false }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [language, setLanguage] = useState('EN');
+  const [language, setLanguage] = useState('VN');
   const [currency, setCurrency] = useState('VND');
   const [scrollY, setScrollY] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -73,27 +73,37 @@ function Header({ isAdmin = false }) {
                     className="w-12 h-12 rounded-full border-2 border-amber-300 shadow-lg"
                   />
                   <span className="font-extrabold text-gray-800 text-4xl drop-shadow-xl">
-                    {isAdmin ? 'QAirline Admin' : 'QAirline'}
+                    {isAdmin ? 'QAirline Quản trị' : 'QAirline'}
                   </span>
                 </Link>
 
                 <nav className="hidden md:flex space-x-6">
                   {isAdmin ? (
                     <>
-                      {['announcements', 'aircrafts', 'flights', 'tickets'].map((item) => (
-                        <motion.div key={item} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
-                          <Link to={`/admin/${item}`} className="text-gray-800 font-semibold text-base">
-                            {item.charAt(0).toUpperCase() + item.slice(1)}
+                      {[
+                        { path: 'announcements', label: 'Thông báo' },
+                        { path: 'aircrafts', label: 'Máy bay' },
+                        { path: 'flights', label: 'Chuyến bay' },
+                        { path: 'tickets', label: 'Vé' }
+                      ].map((item) => (
+                        <motion.div key={item.path} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
+                          <Link to={`/admin/${item.path}`} className="text-gray-800 font-semibold text-base">
+                            {item.label}
                           </Link>
                         </motion.div>
                       ))}
                     </>
                   ) : (
                     <>
-                      {['flights', 'tickets', 'promotions'].map((item) => (
-                        <motion.div key={item} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
-                          <Link to={`/${item}`} className="text-gray-800 font-semibold text-base">
-                            {item === 'tickets' ? 'My Ticket' : item.charAt(0).toUpperCase() + item.slice(1)}
+                      {[
+                        { path: 'about', label: 'Giới thiệu' },
+                        { path: 'flights', label: 'Chuyến bay' },
+                        { path: 'tickets', label: 'Vé của tôi' },
+                        { path: 'promotions', label: 'Khuyến mãi' }
+                      ].map((item) => (
+                        <motion.div key={item.path} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
+                          <Link to={`/${item.path}`} className="text-gray-800 font-semibold text-base">
+                            {item.label}
                           </Link>
                         </motion.div>
                       ))}
@@ -103,8 +113,8 @@ function Header({ isAdmin = false }) {
 
                 <div className="flex items-center space-x-3">
                   <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-transparent border border-gray-800 rounded px-2 py-1 text-gray-800 text-sm">
-                    <option value="EN" className="text-black">EN</option>
-                    <option value="VN" className="text-black">VN</option>
+                    <option value="EN" className="text-black">Tiếng Anh</option>
+                    <option value="VN" className="text-black">Tiếng Việt</option>
                   </select>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="bg-transparent border border-gray-800 rounded px-2 py-1 text-gray-800 text-sm">
                     <option value="VND" className="text-black">VND</option>
@@ -117,15 +127,15 @@ function Header({ isAdmin = false }) {
                   </button>
                   {user ? (
                     <button onClick={handleLogout} className="text-gray-800 font-semibold text-base">
-                      Log Out
+                      Đăng xuất
                     </button>
                   ) : (
                     <>
                       <Link to="/login" className="text-gray-800 font-semibold text-base">
-                        Login
+                        Đăng nhập
                       </Link>
                       <Link to="/register" className="text-gray-800 font-semibold text-base">
-                        Register
+                        Đăng ký
                       </Link>
                     </>
                   )}
@@ -167,25 +177,35 @@ function Header({ isAdmin = false }) {
               <nav className="flex flex-col space-y-4">
                 {isAdmin ? (
                   <>
-                    {['announcements', 'aircrafts', 'flights', 'tickets'].map((item) => (
-                      <Link key={item} to={`/admin/${item}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
-                        {item.charAt(0).toUpperCase() + item.slice(1)}
+                    {[
+                      { path: 'announcements', label: 'Thông báo' },
+                      { path: 'aircrafts', label: 'Máy bay' },
+                      { path: 'flights', label: 'Chuyến bay' },
+                      { path: 'tickets', label: 'Vé' }
+                    ].map((item) => (
+                      <Link key={item.path} to={`/admin/${item.path}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                        {item.label}
                       </Link>
                     ))}
                   </>
                 ) : (
                   <>
-                    {['flights', 'tickets', 'promotions'].map((item) => (
-                      <Link key={item} to={`/${item}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
-                        {item === 'tickets' ? 'Vé của tôi' : item.charAt(0).toUpperCase() + item.slice(1)}
+                    {[
+                      { path: 'about', label: 'Giới thiệu' },
+                      { path: 'flights', label: 'Chuyến bay' },
+                      { path: 'tickets', label: 'Vé của tôi' },
+                      { path: 'promotions', label: 'Khuyến mãi' }
+                    ].map((item) => (
+                      <Link key={item.path} to={`/${item.path}`} className="text-gray-900 font-semibold text-base" onClick={toggleMenu}>
+                        {item.label}
                       </Link>
                     ))}
                   </>
                 )}
                 <div className="flex space-x-4">
                   <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-gray-100 border border-green-300 text-gray-900 rounded-lg px-3 py-1.5">
-                    <option value="EN">EN</option>
-                    <option value="VN">VN</option>
+                    <option value="VN">Tiếng Việt</option>
+                    <option value="EN">Tiếng Anh</option>
                   </select>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="bg-gray-100 border border-green-300 text-gray-900 rounded-lg px-3 py-1.5">
                     <option value="VND">VND</option>

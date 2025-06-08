@@ -35,6 +35,7 @@ function Home({ destinations }) {
   const [error, setError] = useState(null);
   const [visibleDestinations, setVisibleDestinations] = useState(3);
   const [selectedFlightData, setSelectedFlightData] = useState([]);
+  const [selectedFlightId, setSelectedFlightId] = useState(null); // Thêm state cho ID chuyến bay được chọn
 
   const fromCityId = watch('from_city_id');
 
@@ -169,6 +170,7 @@ function Home({ destinations }) {
   const handleViewFlight = async (flight) => {
     setLoading(true);
     setError(null);
+    setSelectedFlightId(flight.id); // Cập nhật ID chuyến bay được chọn
     try {
       const searchData = {
         flight_id: flight.id
@@ -323,12 +325,12 @@ function Home({ destinations }) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-xl border border-green-200 overflow-hidden hover:shadow-2xl transition-shadow"
+                    className={`rounded-xl shadow-xl border border-green-200 overflow-hidden hover:shadow-2xl transition-shadow ${selectedFlightId === flight.id ? 'bg-green-100' : 'bg-white'}`} // Thêm màu xanh nhạt khi được chọn
                   >
                     <div className="p-6">
-                      <div className="text-2xl font-bold text-green-900 mb-3 text-center flex flex-col items-center">
+                      <div className="text-2xl font-bold text-green-800 mb-3 text-center flex flex-col items-center">
                         <span>{flight.departure_city_name}</span>
-                        <span className="my-1">-&gt;</span>
+                        <span className="my-1">-></span>
                         <span>{flight.arrival_city_name}</span>
                       </div>
                       <div className="flex items-center justify-between mb-4">

@@ -172,11 +172,11 @@ function Footer() {
                     <h3 className="text-lg font-semibold mb-4 text-green-500">Download Our App</h3>
                     <p className="text-gray-400">Get the best travel experience with our mobile app</p>
                     <div className="flex space-x-4 mt-4">
-                        <a href="#" className="bg-green-500 hover:bg-[rgb(245,158,11)] px-6 py-3 rounded-lg transition-colors">
-                            <i className="fab fa-apple mr-2"></i>App Store
+                        <a href="#" className="bg-green-500 hover:bg-[rgb(245,158,11)] px-2 py-1 rounded-lg transition-colors flex items-center">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/2560px-Download_on_the_App_Store_Badge.svg.png" alt="App Store" className="h-10 w-auto object-contain" />
                         </a>
-                        <a href="#" className="bg-green-500 hover:bg-[rgb(245,158,11)] px-6 py-3 rounded-lg transition-colors">
-                            <i className="fab fa-google-play mr-2"></i>Google Play
+                        <a href="#" className="bg-green-500 hover:bg-[rgb(245,158,11)] px-2 py-1 rounded-lg transition-colors flex items-center">
+                            <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Google Play" className="h-10 w-auto object-contain" />
                         </a>
                     </div>
                     <div className="mt-4 w-24 h-24 bg-gray-700 flex items-center justify-center">
