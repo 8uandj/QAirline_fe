@@ -661,7 +661,9 @@ function Booking() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Xác Nhận Đặt Vé</h2>
             <div className="absolute top-0 left-0 right-0 h-2 bg-green-100 rounded-t-xl"></div>
             <div className="flex justify-between items-center mb-6">
-              <img src="/path/to/logo.png" alt="AirGrok" className="h-10" />
+              <span>
+                QAIRLINE
+              </span>
               <div className="text-sm text-gray-600">Mã vé: <span className="font-semibold">{ticketCode || 'Chờ xác nhận'}</span></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -768,7 +770,9 @@ function Booking() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Đặt Vé Thành Công!</h2>
             <div className="absolute top-0 left-0 right-0 h-2 bg-green-100 rounded-t-xl"></div>
             <div className="flex justify-between items-center mb-6">
-              <img src="/path/to/logo.png" alt="AirGrok" className="h-10" />
+              <span>
+                QAIRLINE
+              </span>
               <div className="text-sm text-gray-600">
                 Mã vé: <span className="font-semibold text-gray-900">{ticketCode}</span>
               </div>
