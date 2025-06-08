@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 
 const groupTicketsByFlight = (tickets) => {
   return tickets.reduce((acc, t) => {
-    const flightId = t.flight.id;
+    const flightId = t.ticket.flight_id;
     if (!acc[flightId]) acc[flightId] = [];
     acc[flightId].push(t);
     return acc;
@@ -239,7 +239,8 @@ const TicketList = ({ tickets, onSelect }) => {
         return (
           <div key={flightId}>
             <h3 className="text-lg font-semibold text-blue-600 mb-2">
-              ✈️ {flight.flight_number} ({flight.from} → {flight.to})
+              ✈️ {group[0].flight.flight_number}
+                 ({group[0].flight.from} → {group[0].flight.to})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {group.map((t) => (
