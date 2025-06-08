@@ -21,6 +21,7 @@ function AdminTickets() {
     revenue: 0
   });
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [page, setPage] = useState(0);
   const [flights, setFlights] = useState([]);
   const [filters, setFilters] = useState({
     email: '',
@@ -50,7 +51,12 @@ function AdminTickets() {
 
   /* ----------------------- FETCH TICKETS + STATS ----------------------- */
   const fetchTicketsWithFilters = useCallback(() => {
+    setPage(0);
     setLoading(true);
+    const payload = {
+      ...filters,
+      flight_id: filters.flight_id ? Number(filters.flight_id) : ''
+    };
     Promise.all([getAdminTickets(filters), getTicketStats(filters)])
       .then(([ticketsRes, statsRes]) => {
         setTickets(ticketsRes || []);
@@ -68,16 +74,20 @@ function AdminTickets() {
 
   useEffect(fetchTicketsWithFilters, [fetchTicketsWithFilters]);
 
-  /* ----------------------- HANDLERS ----------------------- */
-  const handleChange = e => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
-  };
+ /* ----------------------- HANDLERS ----------------------- */
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFilters((prev) => ({ ...prev, [name]: value }));
+};
+
+
 
   const handleFilterSubmit = e => {
     e.preventDefault();
+    setPage(0); // reset phân trang
     fetchTicketsWithFilters();
   };
+  
 
   if (loading) return (
     <motion.div
@@ -221,7 +231,12 @@ function AdminTickets() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
       >
-        <TicketList tickets={tickets} onSelect={setSelectedTicket} />
+        <TicketList
+            tickets={tickets}
+            page={page}
+            setPage={setPage}
+            onSelect={setSelectedTicket}
+          />
         <ModalDetail ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
       </motion.section>
     </motion.div>
@@ -239,36 +254,82 @@ const StatCard = ({ title, value }) => (
   </motion.div>
 );
 
-/* ---------------- TicketList ---------------- */
-const TicketList = ({ tickets, onSelect }) => {
+const FLIGHTS_PER_PAGE = 3;
+
+const TicketList = ({ tickets, page, setPage, onSelect }) => {
+
   if (!tickets.length) return (
     <p className="text-center text-gray-600 p-4">Không có vé nào.</p>
   );
 
   const grouped = groupTicketsByFlight(tickets);
+  const flightsArray = Object.entries(grouped);
+  const totalPages = Math.ceil(flightsArray.length / FLIGHTS_PER_PAGE);
+
+  const currentSlice = flightsArray.slice(
+    page * FLIGHTS_PER_PAGE,
+    (page + 1) * FLIGHTS_PER_PAGE
+  );
+
+  const toPrev = () => setPage((p) => Math.max(0, p - 1));
+  const toNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
 
   return (
-    <div className="space-y-8">
-      {Object.entries(grouped).map(([flightId, group], index) => (
-        <motion.div
-          key={flightId}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
+    <>
+      <div className="space-y-8">
+        {currentSlice.map(([flightId, group], index) => (
+          <motion.div
+            key={flightId}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <h3 className="text-xl font-semibold text-green-700 mb-4">
+              ✈️ {group[0].flight.flight_number} ({group[0].flight.from} → {group[0].flight.to})
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {group.map(t => (
+                <CondensedCard key={t.ticket.id} ticketData={t} onSelect={onSelect} />
+              ))}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-10">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+          className="bg-green-500 text-white px-5 py-2 rounded-lg shadow font-semibold
+                     hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <h3 className="text-xl font-semibold text-green-700 mb-4">
-            ✈️ {group[0].flight.flight_number} ({group[0].flight.from} → {group[0].flight.to})
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {group.map(t => (
-              <CondensedCard key={t.ticket.id} ticketData={t} onSelect={onSelect} />
-            ))}
-          </div>
-        </motion.div>
-      ))}
-    </div>
+          ← Trước
+        </motion.button>
+      
+        <span className="text-lg font-medium text-gray-700">
+          Trang {page + 1} / {totalPages || 1}
+        </span>
+      
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+          disabled={page >= totalPages - 1}
+          className="bg-green-500 text-white px-5 py-2 rounded-lg shadow font-semibold
+                     hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Sau →
+        </motion.button>
+      </div>
+      
+      )}
+    </>
   );
 };
+
 
 /* -------------- Thẻ vé ---------------- */
 const CondensedCard = ({ ticketData, onSelect }) => (
