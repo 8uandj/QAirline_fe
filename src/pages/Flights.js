@@ -109,7 +109,10 @@ function Flights() {
       console.log('📊 Search data:', searchData);
       const res = await searchFlights(searchData);
       console.log('📊 Search response:', res.data);
-      const flightsData = Array.isArray(res.data) ? res.data : [];
+      if (!res.data.success) {
+        throw new Error(res.data.message || 'Không thể tìm kiếm chuyến bay');
+      }
+      const flightsData = Array.isArray(res.data.data) ? res.data.data : [];
       const availableFlights = flightsData.filter(
         (flight) =>
           flight.available_first_class_seats > 0 ||
