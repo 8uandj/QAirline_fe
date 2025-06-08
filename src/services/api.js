@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://qair-be.onrender.com/api';
 
 // Cấu hình axios mặc định
 axios.defaults.withCredentials = true;
