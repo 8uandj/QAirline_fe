@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getFlights, searchFlights, getCities, getAirports } from '../services/api';
 import { staticFlights } from '../data/flights';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Select from 'react-select'; // Thêm react-select
 
 function Flights() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const [flights, setFlights] = useState([]);
   const [cities, setCities] = useState([]);
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState({ from_city_id: '', to_city_id: '', date: '' });
+  const [search, setSearch] = useState({ from_city_id: '', to_city_id: '', date: '', flight_number: '' });
   const [ticketTypes, setTicketTypes] = useState({});
-  const [quantities, setQuantities] = useState({}); // Thêm state cho số lượng vé
+  const [quantities, setQuantities] = useState({});
 
   const classTypeNames = {
     economy: 'Phổ thông',
@@ -21,37 +23,69 @@ function Flights() {
     first: 'Hạng nhất',
   };
 
+  // Style cho react-select
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderRadius: '0.5rem',
+      borderColor: '#e5e7eb',
+      boxShadow: 'none',
+      '&:hover': { borderColor: '#10b981' },
+    }),
+    option: (base, { isFocused, isSelected }) => ({
+      ...base,
+      backgroundColor: isSelected ? '#10b981' : isFocused ? '#f3f4f6' : 'white',
+      color: isSelected ? 'white' : '#1f2937',
+      '&:active': { backgroundColor: '#e5e7eb' },
+    }),
+  };
+
   useEffect(() => {
     setLoading(true);
+    // Reset search khi reload trang
+    setSearch({ from_city_id: '', to_city_id: '', date: '', flight_number: '' });
 
     const fetchData = async () => {
       try {
-        const [flightsRes, citiesRes, airportsRes] = await Promise.all([
-          getFlights(),
-          getCities(),
-          getAirports(),
-        ]);
-        console.log('📊 Flight data:', flightsRes.data);
-        console.log('📊 Cities response:', citiesRes.data);
-        console.log('📊 Airports data:', airportsRes.data);
+        let flightsData = [];
+        if (state?.searchData) {
+          console.log('📊 State searchData:', state.searchData);
+          const res = await searchFlights(state.searchData);
+          console.log('📊 Search response:', res);
+          flightsData = Array.isArray(res.data.data) ? res.data.data : [];
+        } else if (state?.flights) {
+          console.log('📊 State flights:', state.flights);
+          flightsData = Array.isArray(state.flights) ? state.flights : [];
+        } else {
+          console.log('📊 Fetching all flights');
+          const flightsRes = await getFlights();
+          console.log('📊 Get flights response:', flightsRes);
+          flightsData = Array.isArray(flightsRes.data.data) ? flightsRes.data.data : [];
+        }
 
-        const flightsData = Array.isArray(flightsRes.data.data) ? flightsRes.data.data : [];
+        console.log('📊 Raw flights data:', flightsData);
         const availableFlights = flightsData.filter(
           (flight) =>
             flight.available_first_class_seats > 0 ||
             flight.available_business_class_seats > 0 ||
             flight.available_economy_class_seats > 0,
         );
+        console.log('📊 Available flights:', availableFlights);
         setFlights(availableFlights);
 
+        const [citiesRes, airportsRes] = await Promise.all([
+          getCities(),
+          getAirports(),
+        ]);
         const citiesData = Array.isArray(citiesRes.data.data.data) ? citiesRes.data.data.data : [];
         console.log('📊 Cities data:', citiesData);
         setCities(citiesData);
 
         const airportsData = Array.isArray(airportsRes.data) ? airportsRes.data : [];
+        console.log('📊 Airports data:', airportsData);
         setAirports(airportsData);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error('Error fetching data:', err.message, err.stack);
         setError('Không thể tải dữ liệu: ' + err.message);
         setFlights(staticFlights);
 
@@ -80,42 +114,50 @@ function Flights() {
     };
 
     fetchData();
-  }, []);
+  }, [state]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!search.from_city_id || !search.to_city_id || !search.date) {
-      setError('Vui lòng chọn đầy đủ thông tin');
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
-      const fromAirport = airports.find((a) => a.city_id === search.from_city_id);
-      const toAirport = airports.find((a) => a.city_id === search.to_city_id);
-      if (!fromAirport || !toAirport) {
-        throw new Error('Không tìm thấy sân bay cho thành phố đã chọn');
+      let searchData = {};
+      if (search.flight_number) {
+        searchData = { flight_number: search.flight_number.trim() };
+      } else {
+        if (!search.from_city_id || !search.to_city_id || !search.date) {
+          throw new Error('Vui lòng chọn đầy đủ thành phố đi, đến và ngày');
+        }
+        const fromAirport = airports.find((a) => a.city_id === search.from_city_id);
+        const toAirport = airports.find((a) => a.city_id === search.to_city_id);
+        if (!fromAirport || !toAirport) {
+          console.error('📊 Airports data:', airports);
+          console.error('📊 Selected cities:', { from_city_id: search.from_city_id, to_city_id: search.to_city_id });
+          throw new Error('Không tìm thấy sân bay cho thành phố đã chọn');
+        }
+        searchData = {
+          legs: [
+            {
+              from_airport_id: fromAirport.id,
+              to_airport_id: toAirport.id,
+              date: search.date,
+            },
+          ],
+        };
       }
 
-      const searchData = {
-        legs: [
-          {
-            from_airport_id: fromAirport.id,
-            to_airport_id: toAirport.id,
-            date: search.date,
-          },
-        ],
-      };
-      console.log('📊 Search data:', searchData);
+      console.log('📊 Flights search data:', searchData);
       const res = await searchFlights(searchData);
-      console.log('📊 Search response:', res.data);
-      const flightsData = Array.isArray(res.data) ? res.data : [];
+      console.log('📊 Flights search response:', res);
+      const flightsData = Array.isArray(res.data.data) ? res.data.data : [];
+      console.log('📊 Raw flights data:', flightsData);
       const availableFlights = flightsData.filter(
         (flight) =>
           flight.available_first_class_seats > 0 ||
           flight.available_business_class_seats > 0 ||
           flight.available_economy_class_seats > 0,
       );
+      console.log('📊 Available flights:', availableFlights);
       const sortedFlights = availableFlights.sort(
         (a, b) => new Date(a.departure_time) - new Date(b.departure_time),
       );
@@ -124,7 +166,7 @@ function Flights() {
         setError('Không tìm thấy chuyến bay nào phù hợp.');
       }
     } catch (err) {
-      console.error('Search error:', err);
+      console.error('Search error:', err.message, err.stack);
       setError('Không thể tìm kiếm: ' + err.message);
       setFlights(staticFlights);
     } finally {
@@ -143,18 +185,18 @@ function Flights() {
   };
 
   const handleQuantityChange = (flightId, value) => {
-  const quantity = parseInt(value, 10);
-  console.log('📊 Quantity changed for flightId:', flightId, 'to:', quantity);
-  setQuantities((prev) => ({
-    ...prev,
-    [flightId]: quantity > 0 ? quantity : 1,
-  }));
-};
+    const quantity = parseInt(value, 10);
+    console.log('📊 Quantity changed for flightId:', flightId, 'to:', quantity);
+    setQuantities((prev) => ({
+      ...prev,
+      [flightId]: quantity > 0 ? quantity : 1,
+    }));
+  };
 
   const calculatePrice = (flightId, basePrice) => {
     const ticketType = ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' };
     const quantity = quantities[flightId] || 1;
-    let price = basePrice;
+    let price = parseFloat(basePrice);
 
     if (ticketType.tripType === 'round-trip') {
       price *= 2;
@@ -170,30 +212,58 @@ function Flights() {
   };
 
   const handleBookFlight = (flightId) => {
-  const selectedFlight = flights.find((flight) => flight.id === flightId);
-  if (selectedFlight) {
-    const qty = quantities[flightId] || 1;
-    const ticketType = ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' };
-    const availableSeats = selectedFlight[`available_${ticketType.classType}_class_seats`] || 0;
-    if (qty > availableSeats) {
-      setError(`Chỉ còn ${availableSeats} ghế ${classTypeNames[ticketType.classType]} cho chuyến bay này.`);
-      return;
+    const selectedFlight = flights.find((flight) => flight.id === flightId);
+    if (selectedFlight) {
+      const qty = quantities[flightId] || 1;
+      const ticketType = ticketTypes[flightId] || { tripType: 'one-way', classType: 'economy' };
+      const availableSeats = selectedFlight[`available_${ticketType.classType}_class_seats`] || 0;
+      if (qty > availableSeats) {
+        setError(`Chỉ còn ${availableSeats} ghế ${classTypeNames[ticketType.classType]} cho chuyến bay này.`);
+        return;
+      }
+      console.log('📊 Chuyển hướng đến đặt vé với flightId:', flightId, 'số lượng:', qty);
+      navigate(`/booking/${flightId}`, {
+        state: {
+          flight: selectedFlight,
+          ticketType,
+          quantity: qty,
+        },
+      });
+    } else {
+      setError('Không tìm thấy chuyến bay.');
     }
-    console.log('📊 Chuyển hướng đến đặt vé với flightId:', flightId, 'số lượng:', qty);
-    navigate(`/booking/${flightId}`, {
-      state: {
-        flight: selectedFlight,
-        ticketType,
-        quantity: qty,
-      },
-    });
-  } else {
-    setError('Không tìm thấy chuyến bay.');
-  }
-};
+  };
+
+  // Thêm hàm xóa bộ lọc
+  const handleClearSearch = () => {
+    setSearch({ from_city_id: '', to_city_id: '', date: '', flight_number: '' });
+    setLoading(true);
+    setError(null);
+    const fetchAllFlights = async () => {
+      try {
+        const flightsRes = await getFlights();
+        console.log('📊 Get flights response:', flightsRes);
+        const flightsData = Array.isArray(flightsRes.data.data) ? flightsRes.data.data : [];
+        const availableFlights = flightsData.filter(
+          (flight) =>
+            flight.available_first_class_seats > 0 ||
+            flight.available_business_class_seats > 0 ||
+            flight.available_economy_class_seats > 0,
+        );
+        setFlights(availableFlights);
+      } catch (err) {
+        console.error('Error fetching all flights:', err.message, err.stack);
+        setError('Không thể tải dữ liệu: ' + err.message);
+        setFlights(staticFlights);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllFlights();
+  };
 
   if (loading) return <div className="text-center p-4">Đang tải...</div>;
-  console.log('📊 Quantities state:', quantities);
+  console.log('📊 Flights state:', flights);
 
   return (
     <motion.div
@@ -212,38 +282,49 @@ function Flights() {
 
       {/* Search Form */}
       <form onSubmit={handleSearch} className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-        <select
-          value={search.from_city_id}
-          onChange={(e) => setSearch({ ...search, from_city_id: e.target.value })}
-          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
-          required
-        >
-          <option value="">Chọn địa điểm đi</option>
-          {cities.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={search.to_city_id}
-          onChange={(e) => setSearch({ ...search, to_city_id: e.target.value })}
-          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
-          required
-        >
-          <option value="">Chọn địa điểm đến</option>
-          {cities.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex-1">
+          <Select
+            options={cities.map(city => ({
+              value: city.id,
+              label: city.name,
+            }))}
+            value={cities.find(city => city.id === search.from_city_id) ? { value: search.from_city_id, label: cities.find(city => city.id === search.from_city_id).name } : null}
+            onChange={(selected) => setSearch({ ...search, from_city_id: selected ? selected.value : '' })}
+            placeholder="Thành phố đi"
+            styles={selectStyles}
+            isClearable
+            isSearchable // Bật tìm kiếm
+          />
+        </div>
+        <div className="flex-1">
+          <Select
+            options={cities
+              .filter(city => city.id !== search.from_city_id)
+              .map(city => ({
+                value: city.id,
+                label: city.name,
+              }))}
+            value={cities.find(city => city.id === search.to_city_id) ? { value: search.to_city_id, label: cities.find(city => city.id === search.to_city_id).name } : null}
+            onChange={(selected) => setSearch({ ...search, to_city_id: selected ? selected.value : '' })}
+            placeholder="Thành phố đến"
+            styles={selectStyles}
+            isClearable
+            isSearchable // Bật tìm kiếm
+          />
+        </div>
         <input
           type="date"
           value={search.date}
           onChange={(e) => setSearch({ ...search, date: e.target.value })}
           className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
-          required
+          min={new Date().toISOString().split('T')[0]}
+        />
+        <input
+          type="text"
+          value={search.flight_number}
+          onChange={(e) => setSearch({ ...search, flight_number: e.target.value })}
+          placeholder="Số hiệu chuyến bay (VD: VN123)"
+          className="p-3 border rounded-lg flex-1 bg-gray-50 focus:ring-2 focus:ring-green-500"
         />
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -252,6 +333,15 @@ function Flights() {
           className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition shadow-md"
         >
           Tìm kiếm
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="button"
+          onClick={handleClearSearch}
+          className="bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 transition shadow-md"
+        >
+          Xóa bộ lọc
         </motion.button>
       </form>
 
@@ -329,7 +419,7 @@ function Flights() {
                       </select>
                     </td>
                     <td className="px-6 py-4">
-                      {calculatePrice(flight.id, flight.base_economy_class_price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                      {calculatePrice(flight.id, parseFloat(flight.base_economy_class_price)).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
                     </td>
                     <td className="px-6 py-4">
                       <motion.button

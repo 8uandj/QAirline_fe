@@ -93,7 +93,7 @@ function Header({ isAdmin = false }) {
                       {['flights', 'tickets', 'promotions'].map((item) => (
                         <motion.div key={item} variants={navItemVariants} initial="initial" animate="animate" whileHover="hover">
                           <Link to={`/${item}`} className="text-gray-800 font-semibold text-base">
-                            {item === 'tickets' ? 'Vé của tôi' : item.charAt(0).toUpperCase() + item.slice(1)}
+                            {item === 'tickets' ? 'My Ticket' : item.charAt(0).toUpperCase() + item.slice(1)}
                           </Link>
                         </motion.div>
                       ))}
@@ -117,15 +117,15 @@ function Header({ isAdmin = false }) {
                   </button>
                   {user ? (
                     <button onClick={handleLogout} className="text-gray-800 font-semibold text-base">
-                      Đăng xuất
+                      Log Out
                     </button>
                   ) : (
                     <>
                       <Link to="/login" className="text-gray-800 font-semibold text-base">
-                        Đăng nhập
+                        Login
                       </Link>
                       <Link to="/register" className="text-gray-800 font-semibold text-base">
-                        Đăng ký
+                        Register
                       </Link>
                     </>
                   )}

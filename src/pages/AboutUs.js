@@ -3,19 +3,19 @@ import { motion } from 'framer-motion';
 function AboutUs() {
     const teamMembers = [
         {
-            name: "Nguyễn Văn A",
+            name: "Hoàng Duy Hưng",
             position: "CEO",
             image: "https://images.unsplash.com/photo-1560250097-0b93528c311a",
             description: "Với hơn 15 năm kinh nghiệm trong ngành hàng không."
         },
         {
-            name: "Trần Thị B",
+            name: "Nguyễn Trung Hiếu",
             position: "Giám đốc Điều hành",
             image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
             description: "Chuyên gia về quản lý và phát triển dịch vụ khách hàng."
         },
         {
-            name: "Lê Văn C",
+            name: "Nguyễn Hoàng Phúc",
             position: "Giám đốc Kỹ thuật",
             image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
             description: "Phụ trách đội ngũ kỹ thuật và bảo dưỡng máy bay."
