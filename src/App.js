@@ -31,78 +31,78 @@ const popularDestinations = [
     description: "Hà Nội, thủ đô của Việt Nam, nổi tiếng với kiến trúc ngàn năm và văn hóa phong phú. Hãy khám phá Hồ Hoàn Kiếm, Văn Miếu, và các món ăn đường phố hấp dẫn như phở và bún chả.",
     galleryImages: [
       "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/anh-ha-noi.jpg",
-      "https://media.istockphoto.com/id/160179168/vi/anh/c%E1%BA%A3nh-quan-th%C3%A0nh-ph%E1%BB%91-h%C3%A0-n%E1%BB%99i.jpg?b=1&s=612x612&w=0&k=20&c=fLJ5CRj_3RrxcjmrMF3EHCqDzBySf0o_DZ8yZQ2GQkE=",
-      "https://media.istockphoto.com/id/418073841/vi/s%E1%BA%A3n/tai-v%E2%80%8Avan-mi%E1%BA%BFu-qu%E1%BB%91c-t%E1%BB%89-gi%C3%A1m-%E1%BB%9F-h%C3%A0-n%E1%BB%99i.jpg?s=612x612&w=0&k=20&c=FXgEW8vQ5QLlDn9iP8tacv4o_QbnjyaAG8WlT2Pij8w="
+      "https://nads.1cdn.vn/2024/07/10/W_z5620155725694_52977c30a98953391be8bda1f9b50ba7.jpg",
+      "https://nads.1cdn.vn/2024/07/08/w_12-tbtl-bui-ngoc-cuong-0858186186-long-bien-cay-cau-di-qua-ba-the-ky-1-.jpg"
     ],
   },
   {
     name: "TP. Hồ Chí Minh",
-    image: "https://images.unsplash.com/photo-1590004987778-bece5c9adabc",
+    image: "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482744RVW/anh-mo-ta.png",
     description: "TP. Hồ Chí Minh là trung tâm kinh tế sôi động của Việt Nam, với các địa danh nổi tiếng như Dinh Độc Lập, Nhà thờ Đức Bà, và chợ Bến Thành. Đừng bỏ lỡ cơ hội thưởng thức cà phê Sài Gòn!",
     galleryImages: [
-      "https://images.unsplash.com/photo-1590004987778-bece5c9adabc",
-      "https://images.unsplash.com/photo-1590004987778-bece-ddefg",
-      "https://images.unsplash.com/photo-1590004987778-bece-ghij"
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482744HwS/anh-mo-ta.png",
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482744OgG/anh-mo-ta.png",
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482744cHp/anh-mo-ta.png"
     ],
   },
   {
     name: "Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1559592417-7d4f9c8d7485",
+    image: "https://media.istockphoto.com/id/1357445596/vi/anh/c%E1%BA%A7u-r%E1%BB%93ng-%E1%BB%9F-th%C3%A0nh-ph%E1%BB%91-%C4%91%C3%A0-n%E1%BA%B5ng.jpg?s=612x612&w=0&k=20&c=H_3uhMhNr1kZvg78iOtTROncLKwbsYrffBAEIPpGX2g=",
     description: "Đà Nẵng là thành phố biển xinh đẹp với cầu Rồng, bãi biển Mỹ Khê, và Bà Nà Hills. Đây là điểm đến lý tưởng cho những ai yêu thích thiên nhiên và văn hóa.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1559592417-7d4f9c8d7485",
-      "https://images.unsplash.com/photo-1559592417-7d4f9c8d7486",
-      "https://images.unsplash.com/photo-1559592417-7d4f9c8d7487"
+      "https://vietluxtour.com/Upload/images/2024/khamphatrongnuoc/%C4%91%E1%BB%8Ba%20%C4%91i%E1%BB%83m%20du%20l%E1%BB%8Bch%20%C4%91%C3%A0%20n%E1%BA%B5ng/dia-diem-du-lich-da-nang%20(9)-min.jpg",
+      "https://vietluxtour.com/Upload/images/2024/khamphatrongnuoc/%C4%91%E1%BB%8Ba%20%C4%91i%E1%BB%83m%20du%20l%E1%BB%8Bch%20%C4%91%C3%A0%20n%E1%BA%B5ng/dia-diem-du-lich-da-nang%20(2)-min.jpg",
+      "https://vietluxtour.com/Upload/images/2024/khamphatrongnuoc/%C4%91%E1%BB%8Ba%20%C4%91i%E1%BB%83m%20du%20l%E1%BB%8Bch%20%C4%91%C3%A0%20n%E1%BA%B5ng/dia-diem-du-lich-da-nang%20(3)-min.jpg"
     ],
   },
   {
     name: "Nha Trang",
-    image: "https://images.unsplash.com/photo-1591019533368-1e39a1a9d1f7",
+    image: "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482828Nyr/anh-mo-ta.png",
     description: "Nha Trang nổi tiếng với những bãi biển xanh ngọc và các hoạt động lặn biển. Đừng bỏ lỡ cơ hội khám phá Vinpearl Land và các hòn đảo tuyệt đẹp.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1591019533368-1e39a1a9d1f7",
-      "https://images.unsplash.com/photo-1591019533368-1e39a1a9d1f8",
-      "https://images.unsplash.com/photo-1591019533368-1e39a1a9d1f9"
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482828IeZ/anh-mo-ta.png",
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482828Hnv/anh-mo-ta.png",
+      "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482828JXJ/anh-mo-ta.png"
     ],
   },
   {
     name: "Đà Lạt",
-    image: "https://images.unsplash.com/photo-1591019533328-9e5e5d7d5f5d",
+    image: "https://i2.ex-cdn.com/crystalbay.com/files/content/2025/02/16/du-lich-da-lat-2-1305.jpg",
     description: "Đà Lạt, thành phố ngàn hoa, thu hút du khách với khí hậu mát mẻ, hồ Xuân Hương, thung lũng Tình Yêu, và các đồi chè xanh mướt.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1591019533328-9e5e5d7d5f5d",
-      "https://images.unsplash.com/photo-1591019533328-9e5e5d7d5f5e",
-      "https://images.unsplash.com/photo-1591019533328-9e5e5d7d5f5f"
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2025/02/16/du-lich-da-lat-3-1305.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2025/02/16/du-lich-da-lat-5-1306.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2025/02/16/du-lich-da-lat-6-1306.jpg"
     ],
   },
   {
     name: "Quy Nhơn",
-    image: "https://images.unsplash.com/photo-1591019533392-9e5e5d7d5f5f",
+    image: "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/05/16/du-lich-quy-nhon-1-1653.jpg",
     description: "Quy Nhơn là một điểm đến yên bình với bãi biển Kỳ Co, Eo Gió, và các làng chài truyền thống. Đây là nơi lý tưởng để thư giãn và tận hưởng thiên nhiên.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1591019533392-9e5e5d7d5f5f",
-      "https://images.unsplash.com/photo-1591019533392-9e5e5d7d5f60",
-      "https://images.unsplash.com/photo-1591019533392-9e5e5d7d5f61"
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/05/16/du-lich-quy-nhon-2-1653.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/05/16/du-lich-quy-nhon-4-1653.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/05/16/du-lich-quy-nhon-5-1653.jpg"
     ],
   },
   {
     name: "Phú Quốc",
-    image: "https://images.unsplash.com/photo-1591019533432-9e5e5d7d5f5f",
+    image: "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/11/25/phu-quoc-3-1034.jpg",
     description: "Phú Quốc, hòn đảo ngọc của Việt Nam, nổi tiếng với bãi Sao, làng chài Hàm Ninh, và các khu nghỉ dưỡng sang trọng. Đây là thiên đường cho kỳ nghỉ biển.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1591019533432-9e5e5d7d5f5f",
-      "https://images.unsplash.com/photo-1591019533432-9e5e5d7d5f60",
-      "https://images.unsplash.com/photo-1591019533432-9e5e5d7d5f61"
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/11/25/phu-quoc-12-1034.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/11/25/phu-quoc-13-1034.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/11/25/phu-quoc-18-1034.jpg"
     ],
   },
   {
     name: "Hải Phòng",
-    image: "https://images.unsplash.com/photo-1591019533442-9e5e5d7d5f5f",
+    image: "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/06/13/du-lich-hai-phong-3-1620.jpg",
     description: "Hải Phòng, thành phố cảng sôi động, là cửa ngõ ra vịnh Hạ Long. Du khách có thể khám phá đảo Cát Bà, bãi biển Đồ Sơn, và các món hải sản tươi ngon.",
     galleryImages: [
-      "https://images.unsplash.com/photo-1591019533442-9e5e5d7d5f5f",
-      "https://images.unsplash.com/photo-1591019533442-9e5e5d7d5f60",
-      "https://images.unsplash.com/photo-1591019533442-9e5e5d7d5f61"
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/06/13/du-lich-hai-phong-4-1620.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/06/13/du-lich-hai-phong-5-1620.jpg",
+      "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/06/13/du-lich-hai-phong-9-1620.jpg"
     ],
   },
 ];
