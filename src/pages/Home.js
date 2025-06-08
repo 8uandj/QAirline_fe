@@ -36,7 +36,7 @@
         // Dữ liệu tĩnh cho ưu đãi và đánh giá
         const specialOffers = [
             { id: 1, title: "Khuyến mãi hè", description: "Giảm 30% cho các chuyến bay nội địa!", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e", tag: "Hot", tagColor: "bg-green-600" },
-            { id: 2, title: "Bay quốc tế giá rẻ", description: "Giảm 20% cho các chuyến bay đến Thái Lan!", image: "https://images.unsplash.com/photo-1559592417-7d9f9c8d7485", tag: "International", tagColor: "bg-green-600" }
+            { id: 2, title: "Bay quốc tế giá rẻ", description: "Giảm 20% cho các chuyến bay đến Thái Lan!", image: "https://bizweb.dktcdn.net/100/168/991/files/alo-tour-chuyen-ban-ve-may-bay-trong-nuoc-va-quoc-te-gia-re-2.jpg?v=1541581352069", tag: "International", tagColor: "bg-green-600" }
         ];
 
         // Dữ liệu tĩnh cho thông báo
@@ -442,12 +442,12 @@
                     <h2 className="text-3xl font-bold mb-6 text-green-600">Thông tin máy bay</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-gray-100 p-4 rounded-lg">
-                            <img src="https://images.unsplash.com/photo-1549221341-3a4b4b7a5a5a" alt="Boeing 787" className="w-full h-48 object-cover rounded" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Bamboo_Airways_%28VN-A819%29_Boeing_787-9_Dreamliner_at_Noi_Bai_International_Airport.jpg/800px-Bamboo_Airways_%28VN-A819%29_Boeing_787-9_Dreamliner_at_Noi_Bai_International_Airport.jpg" alt="Boeing 787" className="w-full h-48 object-cover rounded" />
                             <h3 className="text-xl font-semibold mt-2 text-green-600">Boeing 787 Dreamliner</h3>
                             <p className="text-gray-600">Máy bay hiện đại với cabin rộng rãi và tiện nghi cao cấp.</p>
                         </div>
                         <div className="bg-gray-100 p-4 rounded-lg">
-                            <img src="https://images.unsplash.com/photo-1549221341-3a4b4b7a5a5a" alt="Airbus A350" className="w-full h-48 object-cover rounded" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/A350_First_Flight_-_Low_pass_02.jpg/800px-A350_First_Flight_-_Low_pass_02.jpg" alt="Airbus A350" className="w-full h-48 object-cover rounded" />
                             <h3 className="text-xl font-semibold mt-2 text-green-600">Airbus A350</h3>
                             <p className="text-gray-600">Máy bay tiết kiệm nhiên liệu với công nghệ tiên tiến.</p>
                         </div>
@@ -461,14 +461,14 @@
                     <h2 className="text-3xl font-bold mb-6 text-green-600">Cẩm nang du lịch địa phương</h2>
                     <div className="space-y-4">
                         <div className="bg-gray-100 p-4 rounded-lg flex items-center">
-                            <img src="https://picsum.photos/100/100" alt="Ẩm thực" className="w-24 h-24 object-cover rounded mr-4" />
+                            <img src="https://media.thuonghieucongluan.vn/uploads/2018_08_14/le-hoi-am-thuc-ha-noi-2018-1534180078.jpg" alt="Ẩm thực" className="w-24 h-24 object-cover rounded mr-4" />
                             <div>
                                 <h3 className="text-xl font-semibold text-green-600">Khám phá ẩm thực Việt Nam</h3>
                                 <p className="text-gray-600">Thưởng thức các món ăn đặc sản tại các địa phương.</p>
                             </div>
                         </div>
                         <div className="bg-gray-100 p-4 rounded-lg flex items-center">
-                            <img src="https://picsum.photos/100/100" alt="Lễ hội" className="w-24 h-24 object-cover rounded mr-4" />
+                            <img src="https://langnambo.vn/files/images/tin-tuc/le-hoi-van-hoa-nam-bo-di-san-quy-bau-cua-dan-toc/ruoc-kieu-ba-chua-xu-xuong.jpg" alt="Lễ hội" className="w-24 h-24 object-cover rounded mr-4" />
                             <div>
                                 <h3 className="text-xl font-semibold text-green-600">Lễ hội văn hóa</h3>
                                 <p className="text-gray-600">Trải nghiệm các lễ hội độc đáo trên khắp Việt Nam.</p>
