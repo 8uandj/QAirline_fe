@@ -3,13 +3,11 @@ import { motion } from 'framer-motion';
 import { getAdminStats, getRecentBookings, getUpcomingFlights, getBookingTrends } from '../../services/api';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
-import { useAuth } from '../../context/AuthContext';
 
 // Đăng ký các thành phần của Chart.js, bao gồm Filler
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 function AdminDashboard() {
-    const { user } = useAuth();
     const [stats, setStats] = useState({ totalFlights: 0, totalTickets: 0, totalRevenue: 0, totalAnnouncements: 0, totalUsers: 0 });
     const [recentBookings, setRecentBookings] = useState([]);
     const [upcomingFlights, setUpcomingFlights] = useState([]);

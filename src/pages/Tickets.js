@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://qair-be.onrender.com';
 
 function Tickets() {
   const { user } = useAuth();
@@ -185,7 +185,7 @@ function Tickets() {
   >
     <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
     <div className="flex justify-between items-center mb-4 pt-6">
-      <img src="/path/to/logo.png" alt="QAirline" className="h-8" />
+      <span>QAIRLINE</span>
       <div className="text-sm text-gray-600">Mã vé: {trackedTicket.standardized_code}</div>
     </div>
     <div className="grid grid-cols-10 gap-4">
@@ -328,7 +328,7 @@ function Tickets() {
         >
           <div className="absolute top-0 left-0 right-0 h-4 border-b-2 border-dashed border-green-200"></div>
           <div className="flex justify-between items-center mb-4 pt-6">
-            <img src="/path/to/logo.png" alt="QAirline" className="h-8" />
+              <span>QAIRLINE</span>
             <div className="text-sm text-gray-600">Mã vé: {item.ticket.standardized_code || item.ticket.ticket_code}</div>
           </div>
           <div className="grid grid-cols-10 gap-4">

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { bookMultipleTickets, bookTicket } from '../services/api';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://qair-be.onrender.com';
 
 const classTypeNames = {
   economy: 'Phổ thông',

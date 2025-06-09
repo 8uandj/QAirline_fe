@@ -16,58 +16,8 @@ function SeatSelection() {
 
   const flight = state?.flight || {};
   const ticketType = state?.ticketType || { tripType: 'one-way', classType: 'economy' };
-  const customer = state?.customer || null;
-  const formData = state?.formData || null;
-  const email = state?.email || '';
   const quantity = state?.quantity || 1;
   const ticketClass = ticketType.classType;
-
-  useEffect(() => {
-    console.log('📊 Flight ID:', flightId);
-    console.log('📊 State:', state);
-    console.log('📊 Quantity:', quantity);
-    console.log('📊 Passengers:', state?.passengers);
-
-    if (!flightId || !flight) {
-      setError('Không tìm thấy ID chuyến bay hoặc thông tin chuyến bay.');
-      navigate('/flights');
-      return;
-    }
-
-    if (!state?.passengers || state.passengers.length !== quantity) {
-      setError('Thông tin hành khách không hợp lệ. Vui lòng quay lại trang đặt vé.');
-      navigate(`/booking/${flightId}`, { state: { flight, ticketType, quantity } });
-      return;
-    }
-
-    const fetchSeats = async () => {
-      setLoading(true);
-      try {
-        const res = await getSeatMap(flightId);
-        console.log('📊 Seats data:', res.data);
-        const data = res.data.data || {};
-        setSeatsData({
-          first_class: data.first_class || [],
-          business_class: data.business_class || [],
-          economy_class: data.economy_class || [],
-        });
-
-        const cabins = getCabins(data);
-        if (cabins.length > 0) {
-          setActiveCabin(cabins[0].id);
-        } else {
-          setError('Không có khoang phù hợp với hạng vé.');
-        }
-      } catch (err) {
-        console.error('Error fetching seats:', err);
-        setError('Không thể tải sơ đồ ghế: ' + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSeats();
-  }, [flightId, ticketClass, navigate, flight, quantity, state]);
 
   const getCabins = (data) => {
     const classKey = {
@@ -145,6 +95,53 @@ function SeatSelection() {
     console.log('📊 Final cabins:', cabins);
     return cabins;
   };
+  
+  useEffect(() => {
+    console.log('📊 Flight ID:', flightId);
+    console.log('📊 State:', state);
+    console.log('📊 Quantity:', quantity);
+    console.log('📊 Passengers:', state?.passengers);
+
+    if (!flightId || !flight) {
+      setError('Không tìm thấy ID chuyến bay hoặc thông tin chuyến bay.');
+      navigate('/flights');
+      return;
+    }
+
+    if (!state?.passengers || state.passengers.length !== quantity) {
+      setError('Thông tin hành khách không hợp lệ. Vui lòng quay lại trang đặt vé.');
+      navigate(`/booking/${flightId}`, { state: { flight, ticketType, quantity } });
+      return;
+    }
+
+    const fetchSeats = async () => {
+      setLoading(true);
+      try {
+        const res = await getSeatMap(flightId);
+        console.log('📊 Seats data:', res.data);
+        const data = res.data.data || {};
+        setSeatsData({
+          first_class: data.first_class || [],
+          business_class: data.business_class || [],
+          economy_class: data.economy_class || [],
+        });
+
+        const cabins = getCabins(data);
+        if (cabins.length > 0) {
+          setActiveCabin(cabins[0].id);
+        } else {
+          setError('Không có khoang phù hợp với hạng vé.');
+        }
+      } catch (err) {
+        console.error('Error fetching seats:', err);
+        setError('Không thể tải sơ đồ ghế: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSeats();
+  }, [flightId, ticketClass, navigate, flight, quantity, state]);
 
   const handleSeatClick = ({ type, seat, cabinId }) => {
     if (type === 'setActiveCabin') {
